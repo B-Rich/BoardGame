@@ -34,21 +34,45 @@ public class TileManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.UpArrow)) {
-			player.transform.Translate(Vector3.up * boardTileHeight, Space.World);
-			playerY++;
-		}
-		if (Input.GetKeyDown (KeyCode.DownArrow)) {
-			player.transform.Translate(Vector3.down * boardTileHeight, Space.World);
+		if (Input.GetKeyDown (KeyCode.Q)) {
+			player.transform.Translate(Vector3.RotateTowards(Vector3.left * boardTileWidth, 
+			                                                 Vector3.up * boardTileHeight, 
+			                                                 1.0f, boardTileHeight), 
+			                           Space.World);
+			playerX-= (playerY % 2);
 			playerY--;
 		}
-		if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+		if (Input.GetKeyDown (KeyCode.E)) {
+			player.transform.Translate(Vector3.RotateTowards(Vector3.right * boardTileWidth, 
+			                                                 Vector3.up * boardTileHeight, 
+			                                                 1.0f, boardTileHeight), 
+			                           Space.World);
+			playerX+= ((playerY+1) % 2);
+			playerY--;
+		}
+		if (Input.GetKeyDown (KeyCode.A)) {
 			player.transform.Translate(Vector3.left * boardTileWidth, Space.World);
 			playerX--;
 		}
-		if (Input.GetKeyDown (KeyCode.RightArrow)) {
+		if (Input.GetKeyDown (KeyCode.D)) {
 			player.transform.Translate(Vector3.right * boardTileWidth, Space.World);
 			playerX++;
+		}
+		if (Input.GetKeyDown (KeyCode.Z)) {
+			player.transform.Translate(Vector3.RotateTowards(Vector3.left * boardTileWidth, 
+			                                                 Vector3.down * boardTileHeight, 
+			                                                 1.0f, boardTileHeight), 
+			                           Space.World);
+			playerX-= (playerY % 2);
+			playerY++;
+		}
+		if (Input.GetKeyDown (KeyCode.X)) {
+			player.transform.Translate(Vector3.RotateTowards(Vector3.right * boardTileWidth, 
+			                                                 Vector3.down * boardTileHeight, 
+			                                                 1.0f, boardTileHeight), 
+			                           Space.World);
+			playerX+= ((playerY+1) % 2);
+			playerY++;
 		}
 		Vector3 playerLoc = player.transform.position;
 		if (boardTiles [playerY, playerX] == BoardTileType.Empty) {
