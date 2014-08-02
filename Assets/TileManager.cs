@@ -11,6 +11,8 @@ public class TileManager : MonoBehaviour {
 	float boardTileHeight;
 	int playerX = 25;
 	int playerY = 25;
+	float baselineX;
+	float baselineY;
 	// Use this for initialization
 	public enum BoardTileType {
 		Empty,
@@ -21,6 +23,9 @@ public class TileManager : MonoBehaviour {
 	GameObject[,] boardTileImages;
 
 	void Start () {
+		baselineX = GameBoardTile.transform.position.x;
+		baselineY = GameBoardTile.transform.position.y;
+
 		boardTiles = new BoardTileType[50, 50];
 		boardTileImages = new GameObject[50, 50];
 		for (int i = 0; i < 50; i++) {
@@ -31,48 +36,47 @@ public class TileManager : MonoBehaviour {
 		boardTileWidth = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).x;
 		boardTileHeight = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).y;
 	}
-	
+
+	Vector3 updatedPlayerPosition (int playerX, int playerY) {
+		float x_correction;
+		if(playerY % 2 == 0)
+			x_correction = 0.5f;
+		else
+			x_correction = 0f;
+
+		return (new Vector3(baselineX + (playerX - 25)*boardTileWidth + x_correction*boardTileWidth,
+		                    baselineY + (playerY - 25)*boardTileHeight*.75f));
+	}
+
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown (KeyCode.Q)) {
-			player.transform.Translate(Vector3.RotateTowards(Vector3.left * boardTileWidth, 
-			                                                 Vector3.up * boardTileHeight, 
-			                                                 1.0f, boardTileHeight), 
-			                           Space.World);
 			playerX-= (playerY % 2);
-			playerY--;
+			playerY++;
+			player.transform.position = updatedPlayerPosition(playerX, playerY);
 		}
 		if (Input.GetKeyDown (KeyCode.E)) {
-			player.transform.Translate(Vector3.RotateTowards(Vector3.right * boardTileWidth, 
-			                                                 Vector3.up * boardTileHeight, 
-			                                                 1.0f, boardTileHeight), 
-			                           Space.World);
 			playerX+= ((playerY+1) % 2);
-			playerY--;
+			playerY++;
+			player.transform.position = updatedPlayerPosition(playerX, playerY);
 		}
 		if (Input.GetKeyDown (KeyCode.A)) {
-			player.transform.Translate(Vector3.left * boardTileWidth, Space.World);
 			playerX--;
+			player.transform.position = updatedPlayerPosition(playerX, playerY);
 		}
 		if (Input.GetKeyDown (KeyCode.D)) {
-			player.transform.Translate(Vector3.right * boardTileWidth, Space.World);
 			playerX++;
+			player.transform.position = updatedPlayerPosition(playerX, playerY);
 		}
 		if (Input.GetKeyDown (KeyCode.Z)) {
-			player.transform.Translate(Vector3.RotateTowards(Vector3.left * boardTileWidth, 
-			                                                 Vector3.down * boardTileHeight, 
-			                                                 1.0f, boardTileHeight), 
-			                           Space.World);
 			playerX-= (playerY % 2);
-			playerY++;
+			playerY--;
+			player.transform.position = updatedPlayerPosition(playerX, playerY);
 		}
 		if (Input.GetKeyDown (KeyCode.X)) {
-			player.transform.Translate(Vector3.RotateTowards(Vector3.right * boardTileWidth, 
-			                                                 Vector3.down * boardTileHeight, 
-			                                                 1.0f, boardTileHeight), 
-			                           Space.World);
 			playerX+= ((playerY+1) % 2);
-			playerY++;
+			playerY--;
+			player.transform.position = updatedPlayerPosition(playerX, playerY);
 		}
 		Vector3 playerLoc = player.transform.position;
 		if (boardTiles [playerY, playerX] == BoardTileType.Empty) {
