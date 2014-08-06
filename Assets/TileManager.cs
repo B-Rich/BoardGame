@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class TileManager : MonoBehaviour {
-	public GameObject player;
+	//public GameObject player;
 	public GameObject GameBoardTile;
 	public Sprite GameBoardSprite;
 	public GameObject GameBoardBlockedTL;
@@ -14,12 +14,10 @@ public class TileManager : MonoBehaviour {
 
 	float boardTileWidth;
 	float boardTileHeight;
-	int playerX = 25;
-	int playerY = 25;
 	float baselineX;
 	float baselineY;
-	const int BOARD_HEIGHT = 50;
-	const int BOARD_WIDTH = 50;
+	public const int BOARD_HEIGHT = 50;
+	public const int BOARD_WIDTH = 50;
 	
 	public enum BoardTileType {
 		Empty,
@@ -46,19 +44,33 @@ public class TileManager : MonoBehaviour {
 		boardTileHeight = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).y;
 	}
 
-	Vector3 updatedPlayerPosition (int playerX, int playerY) {
+	public Vector3 ComputePlayerPosition (int playerX, int playerY) {
 		float x_correction;
 		if(playerY % 2 == 0)
 			x_correction = 0.5f;
 		else
 			x_correction = 0f;
-
+		
 		return (new Vector3(baselineX + (playerX - 25)*boardTileWidth + x_correction*boardTileWidth,
 		                    baselineY + (playerY - 25)*boardTileHeight*.75f));
 	}
 
-	GameObject InstantiateTileObject(int playerY, int playerX){
-		Vector3 playerLoc = player.transform.position;
+	public bool UpdatePlayerPosition (Vector3 playerPosition, int playerX, int playerY) {
+		if (boardTiles [playerY, playerX] == BoardTileType.Empty) {
+			boardTileImages[playerY,playerX] = InstantiateTileObject(playerPosition, playerY,playerX);
+			boardTiles[playerY, playerX] = BoardTileType.Town;
+		}
+
+		return (true);
+	}
+
+	void InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
+		GameObject temp = Instantiate (tile, playerLoc, Quaternion.identity) as GameObject;
+		temp.renderer.enabled = true;
+		temp.transform.parent = parentTile.transform;
+	}
+
+	GameObject InstantiateTileObject(Vector3 playerPosition, int playerY, int playerX){
 		GameObject tile;
 		bool closedLeft = false;
 		bool closedTopLeft = false;
@@ -92,88 +104,25 @@ public class TileManager : MonoBehaviour {
 			closedTopLeft = true;
 			closedTopRight = true;
 		}
-		tile = Instantiate (GameBoardTile, playerLoc, Quaternion.identity) as GameObject;
+		tile = Instantiate (GameBoardTile, playerPosition, Quaternion.identity) as GameObject;
 		if(closedTopLeft){
-			GameObject temp = Instantiate (GameBoardBlockedTL, playerLoc, Quaternion.identity) as GameObject;
-			temp.renderer.enabled = true;
-			temp.transform.parent = tile.transform;
+			InstantiateAndDisplay(tile, GameBoardBlockedTL, playerPosition);
 		}
 		if(closedTopRight){
-			Debug.Log ("closed top right");
-			GameObject temp = Instantiate (GameBoardBlockedTR, playerLoc, Quaternion.identity) as GameObject;
-			temp.renderer.enabled = true;
-			temp.transform.parent = tile.transform;
+			InstantiateAndDisplay (tile, GameBoardBlockedTR, playerPosition);
 		}
 		if(closedLeft){
-			Debug.Log ("closed left");
-			GameObject temp = Instantiate (GameBoardBlockedL, playerLoc, Quaternion.identity) as GameObject;
-			temp.renderer.enabled = true;
-			temp.transform.parent = tile.transform;
+			InstantiateAndDisplay (tile, GameBoardBlockedL, playerPosition);
 		}
 		if(closedRight){
-			Debug.Log ("closed right");
-			GameObject temp = Instantiate (GameBoardBlockedR, playerLoc, Quaternion.identity) as GameObject;
-			temp.renderer.enabled = true;
-			temp.transform.parent = tile.transform;
+			InstantiateAndDisplay (tile, GameBoardBlockedR, playerPosition);
 		}
 		if(closedBottomLeft){
-			Debug.Log ("closed bottom left");
-			GameObject temp = Instantiate (GameBoardBlockedBL, playerLoc, Quaternion.identity) as GameObject;
-			temp.renderer.enabled = true;
-			temp.transform.parent = tile.transform;
+			InstantiateAndDisplay (tile, GameBoardBlockedBL, playerPosition);
 		}
 		if(closedBottomRight){
-			Debug.Log ("closed bottom right");
-			GameObject temp = Instantiate (GameBoardBlockedBR, playerLoc, Quaternion.identity) as GameObject;
-			temp.renderer.enabled = true;
-			temp.transform.parent = tile.transform;
+			InstantiateAndDisplay (tile, GameBoardBlockedBR, playerPosition);
 		}
 		return (tile);
-	}
-
-	// Update is called once per frame
-	void Update () {
-		if (Input.GetKeyDown (KeyCode.Q)) {
-			if(playerX > 0)
-				playerX-= (playerY % 2);
-			if(playerY < BOARD_HEIGHT - 1)
-				playerY++;
-			player.transform.position = updatedPlayerPosition(playerX, playerY);
-		}
-		if (Input.GetKeyDown (KeyCode.E)) {
-			if(playerX < BOARD_WIDTH - 1)
-				playerX+= ((playerY+1) % 2);
-			if(playerY < BOARD_HEIGHT - 1)
-				playerY++;
-			player.transform.position = updatedPlayerPosition(playerX, playerY);
-		}
-		if (Input.GetKeyDown (KeyCode.A)) {
-			if(playerX > 0)
-				playerX--;
-			player.transform.position = updatedPlayerPosition(playerX, playerY);
-		}
-		if (Input.GetKeyDown (KeyCode.D)) {
-			if(playerX < BOARD_WIDTH - 1)
-				playerX++;
-			player.transform.position = updatedPlayerPosition(playerX, playerY);
-		}
-		if (Input.GetKeyDown (KeyCode.Z)) {
-			if(playerX > 0)
-				playerX-= (playerY % 2);
-			if(playerY > 0)
-				playerY--;
-			player.transform.position = updatedPlayerPosition(playerX, playerY);
-		}
-		if (Input.GetKeyDown (KeyCode.X)) {
-			if(playerX < BOARD_WIDTH - 1)
-				playerX+= ((playerY+1) % 2);
-			if(playerY > 0)
-				playerY--;
-			player.transform.position = updatedPlayerPosition(playerX, playerY);
-		}
-		if (boardTiles [playerY, playerX] == BoardTileType.Empty) {
-			boardTileImages[playerY,playerX] = InstantiateTileObject(playerY,playerX);
-			boardTiles[playerY, playerX] = BoardTileType.Town;
-		}
 	}
 }
