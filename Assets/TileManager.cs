@@ -12,6 +12,8 @@ public class TileManager : MonoBehaviour {
 	public GameObject GameBoardBlockedBL;
 	public GameObject GameBoardBlockedBR;
 	public GameObject Town;
+	public GameObject Ally;
+	public GameObject Enemy;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -82,6 +84,7 @@ public class TileManager : MonoBehaviour {
 			else if(rng < .4f){
 				print("Ally boardtype");
 				boardTileTypes[playerY, playerX] = BoardTileType.Ally;
+				InstantiateAndDisplay (boardTileObjects[playerY,playerX],Ally, playerPosition);
 			}
 			else if(rng < .9f){
 				print ("Grass boardtype");
@@ -90,6 +93,7 @@ public class TileManager : MonoBehaviour {
 			else{
 				print ("Enemy boardtype");
 				boardTileTypes[playerY, playerX] = BoardTileType.Enemy;
+				InstantiateAndDisplay (boardTileObjects[playerY,playerX],Enemy, playerPosition);
 			}
 		}
 		return (true);
