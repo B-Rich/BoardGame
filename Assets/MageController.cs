@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MageStats : MonoBehaviour {
+public class MageController : MonoBehaviour {
 	public int hp;
 	public char playerName;
 	private int level;
@@ -16,9 +16,22 @@ public class MageStats : MonoBehaviour {
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
 	}
-	
+
+	public bool TakeDamage(int dmg){
+		hp -= dmg;
+		if (hp < 0){
+			hp = 0;
+			return true;
+		}
+		else
+			return false;
+	}
+
 	// Update is called once per frame
 	void Update () {
+
+		//Move player based on key press. Q = NW, E = NE
+		//A = W, D = E, Z = SW, X = SE
 		if(Input.GetKeyDown (KeyCode.Q) || 
 		   Input.GetKeyDown (KeyCode.E) || 
 		   Input.GetKeyDown (KeyCode.A) ||
@@ -58,8 +71,12 @@ public class MageStats : MonoBehaviour {
 					y--;
 			}
 			Vector3 nextPlayerPosition = board.ComputePlayerPosition(x, y);
-			if(board.UpdatePlayerPosition (nextPlayerPosition, x, y))
-			   transform.position = nextPlayerPosition;
+			if(board.UpdatePlayerPosition (nextPlayerPosition, x, y)){
+				transform.position = nextPlayerPosition;
+				if(board.HasEnemies(x, y)){
+
+				}
+			}
 		}
 	}
 }

@@ -11,6 +11,7 @@ public class TileManager : MonoBehaviour {
 	public GameObject GameBoardBlockedR;
 	public GameObject GameBoardBlockedBL;
 	public GameObject GameBoardBlockedBR;
+	public GameObject Town;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -22,26 +23,38 @@ public class TileManager : MonoBehaviour {
 	public enum BoardTileType {
 		Empty,
 		Town,
+		Ally,
+		Grass,
 		Enemy
 	}
 
-	BoardTileType[,] boardTiles;
-	GameObject[,] boardTileImages;
+	//For now I'll keep track of the type of tile separately
+	//from the tile objects, mostly because I don't want to run 
+	//a script on every single tile object
+	BoardTileType[,] boardTileTypes;
+	GameObject[,] boardTileObjects;
 
 	// Use this for initialization
 	void Start () {
 		baselineX = GameBoardTile.transform.position.x;
 		baselineY = GameBoardTile.transform.position.y;
 
-		boardTiles = new BoardTileType[BOARD_HEIGHT, BOARD_WIDTH];
-		boardTileImages = new GameObject[BOARD_HEIGHT, BOARD_WIDTH];
+		boardTileTypes = new BoardTileType[BOARD_HEIGHT, BOARD_WIDTH];
+		boardTileObjects = new GameObject[BOARD_HEIGHT, BOARD_WIDTH];
 		for (int i = 0; i < BOARD_HEIGHT; i++) {
 			for (int j = 0; j < BOARD_WIDTH; j++) {
-				boardTiles [i, j] = BoardTileType.Empty;
+				boardTileTypes [i, j] = BoardTileType.Empty;
 			}
 		}
 		boardTileWidth = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).x;
 		boardTileHeight = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).y;
+	}
+
+	public bool HasEnemies(int x, int y){
+		if(boardTileTypes[y, x] == BoardTileType.Enemy){
+			return true;
+		}
+		return false;
 	}
 
 	public Vector3 ComputePlayerPosition (int playerX, int playerY) {
@@ -56,11 +69,29 @@ public class TileManager : MonoBehaviour {
 	}
 
 	public bool UpdatePlayerPosition (Vector3 playerPosition, int playerX, int playerY) {
-		if (boardTiles [playerY, playerX] == BoardTileType.Empty) {
-			boardTileImages[playerY,playerX] = InstantiateTileObject(playerPosition, playerY,playerX);
-			boardTiles[playerY, playerX] = BoardTileType.Town;
+		if (boardTileTypes [playerY, playerX] == BoardTileType.Empty) {
+			boardTileObjects[playerY,playerX] = InstantiateTileObject(playerPosition, playerY,playerX);
+			//Randomly determine if there should be an enemy here. If there is, create one and make it
+			//the child of the tile GameObject here.
+			float rng = Random.value;
+			if(rng < .3f){
+				print ("Town boardtype");
+				boardTileTypes[playerY, playerX] = BoardTileType.Town;
+				InstantiateAndDisplay (boardTileObjects[playerY,playerX],Town, playerPosition);
+			}
+			else if(rng < .4f){
+				print("Ally boardtype");
+				boardTileTypes[playerY, playerX] = BoardTileType.Ally;
+			}
+			else if(rng < .9f){
+				print ("Grass boardtype");
+				boardTileTypes[playerY, playerX] = BoardTileType.Grass;
+			}
+			else{
+				print ("Enemy boardtype");
+				boardTileTypes[playerY, playerX] = BoardTileType.Enemy;
+			}
 		}
-
 		return (true);
 	}
 
