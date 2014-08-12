@@ -23,7 +23,7 @@ public class TileManager : MonoBehaviour {
 	public const int BOARD_WIDTH = 50;
 	
 	public enum BoardTileType {
-		Empty,
+		Invisible,
 		Town,
 		Ally,
 		Grass,
@@ -45,7 +45,7 @@ public class TileManager : MonoBehaviour {
 		boardTileObjects = new GameObject[BOARD_HEIGHT, BOARD_WIDTH];
 		for (int i = 0; i < BOARD_HEIGHT; i++) {
 			for (int j = 0; j < BOARD_WIDTH; j++) {
-				boardTileTypes [i, j] = BoardTileType.Empty;
+				boardTileTypes [i, j] = BoardTileType.Invisible;
 			}
 		}
 		boardTileWidth = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).x;
@@ -59,44 +59,67 @@ public class TileManager : MonoBehaviour {
 		return false;
 	}
 
-	public Vector3 ComputePlayerPosition (int playerX, int playerY) {
+	public Vector3 ComputePosition (int x, int y) {
 		float x_correction;
-		if(playerY % 2 == 0)
+		if(y % 2 == 0)
 			x_correction = 0.5f;
 		else
 			x_correction = 0f;
 		
-		return (new Vector3(baselineX + (playerX - 25)*boardTileWidth + x_correction*boardTileWidth,
-		                    baselineY + (playerY - 25)*boardTileHeight*.75f));
+		return (new Vector3(baselineX + (x - 25)*boardTileWidth + x_correction*boardTileWidth,
+		                    baselineY + (y - 25)*boardTileHeight*.75f));
 	}
 
-	public bool UpdatePlayerPosition (Vector3 playerPosition, int playerX, int playerY) {
-		if (boardTileTypes [playerY, playerX] == BoardTileType.Empty) {
-			boardTileObjects[playerY,playerX] = InstantiateTileObject(playerPosition, playerY,playerX);
-			//Randomly determine if there should be an enemy here. If there is, create one and make it
-			//the child of the tile GameObject here.
-			float rng = Random.value;
-			if(rng < .3f){
-				print ("Town boardtype");
-				boardTileTypes[playerY, playerX] = BoardTileType.Town;
-				InstantiateAndDisplay (boardTileObjects[playerY,playerX],Town, playerPosition);
-			}
-			else if(rng < .4f){
-				print("Ally boardtype");
-				boardTileTypes[playerY, playerX] = BoardTileType.Ally;
-				InstantiateAndDisplay (boardTileObjects[playerY,playerX],Ally, playerPosition);
-			}
-			else if(rng < .9f){
-				print ("Grass boardtype");
-				boardTileTypes[playerY, playerX] = BoardTileType.Grass;
-			}
-			else{
-				print ("Enemy boardtype");
-				boardTileTypes[playerY, playerX] = BoardTileType.Enemy;
-				InstantiateAndDisplay (boardTileObjects[playerY,playerX],Enemy, playerPosition);
+	public Vector3 UpdatePlayerPosition (int playerID, int x, int y) {
+		//Extra tiles go here?
+		if(y % 2 == 0){
+			CreateTile (x + 1, y + 1);
+			CreateTile (x + 1, y - 1);
+		}
+		else {
+			CreateTile (x - 1, y - 1);
+			CreateTile (x - 1, y + 1);
+		}
+
+		CreateTile (x - 1, y);
+		CreateTile (x + 1, y);
+
+		CreateTile (x, y - 1);
+		CreateTile (x, y + 1);
+		return CreateTile (x, y);
+	}
+
+	Vector3 CreateTile (int x, int y){
+		Vector3 tilePosition = ComputePosition(x, y);
+
+		//Only check within bounds of board matrices
+		if(x >= 0 && y >= 0 && x < BOARD_WIDTH && y < BOARD_HEIGHT){
+			if (boardTileTypes [x, y] == BoardTileType.Invisible) {
+				boardTileObjects[x, y] = InstantiateTileObject(x, y);
+				//Determine which extra crap goes on this tile (ally, town, enemy, or grass for now)
+				float rng = Random.value;
+				if(rng < .3f){
+					print ("Town boardtype");
+					boardTileTypes[x, y] = BoardTileType.Town;
+					InstantiateAndDisplay (boardTileObjects[x, y],Town, tilePosition);
+				}
+				else if(rng < .4f){
+					print("Ally boardtype");
+					boardTileTypes[x, y] = BoardTileType.Ally;
+					InstantiateAndDisplay (boardTileObjects[x, y],Ally, tilePosition);
+				}
+				else if(rng < .9f){
+					print ("Grass boardtype");
+					boardTileTypes[x, y] = BoardTileType.Grass;
+				}
+				else{
+					print ("Enemy boardtype");
+					boardTileTypes[x, y] = BoardTileType.Enemy;
+					InstantiateAndDisplay (boardTileObjects[x, y],Enemy, tilePosition);
+				}
 			}
 		}
-		return (true);
+		return tilePosition;
 	}
 
 	void InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
@@ -105,7 +128,8 @@ public class TileManager : MonoBehaviour {
 		temp.transform.parent = parentTile.transform;
 	}
 
-	GameObject InstantiateTileObject(Vector3 playerPosition, int playerY, int playerX){
+	GameObject InstantiateTileObject(int x, int y){
+		Vector3 playerPosition = ComputePosition (x, y);
 		GameObject tile;
 		bool closedLeft = false;
 		bool closedTopLeft = false;
@@ -114,28 +138,28 @@ public class TileManager : MonoBehaviour {
 		bool closedTopRight = false;
 		bool closedBottomRight = false;
 
-		if(playerX == 0){
+		if(x == 0){
 			closedLeft = true;
-			if(playerY % 2 == 1){
+			if(y % 2 == 1){
 				closedBottomLeft = true;
 				closedTopLeft = true;
 			}
 		}
 
-		if(playerY == 0){
+		if(y == 0){
 			closedBottomLeft = true;
 			closedBottomRight = true;
 		}
 
-		if(playerX == BOARD_WIDTH - 1){
+		if(x == BOARD_WIDTH - 1){
 			closedRight = true;
-			if(playerY % 2 == 0){
+			if(y % 2 == 0){
 				closedTopRight = true;
 				closedBottomRight = true;
 			}
 		}
 
-		if(playerY == BOARD_HEIGHT - 1){
+		if(y == BOARD_HEIGHT - 1){
 			closedTopLeft = true;
 			closedTopRight = true;
 		}

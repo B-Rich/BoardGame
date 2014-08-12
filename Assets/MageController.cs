@@ -11,10 +11,12 @@ public class MageController : MonoBehaviour {
 	private GameObject boardLocation;
 	private int x = 25;
 	private int y = 25;
+	private int playerID = 0;
 
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
+		board.UpdatePlayerPosition(playerID, x, y);
 	}
 
 	public bool TakeDamage(int dmg){
@@ -70,12 +72,9 @@ public class MageController : MonoBehaviour {
 				if(y > 0)
 					y--;
 			}
-			Vector3 nextPlayerPosition = board.ComputePlayerPosition(x, y);
-			if(board.UpdatePlayerPosition (nextPlayerPosition, x, y)){
-				transform.position = nextPlayerPosition;
-				if(board.HasEnemies(x, y)){
+			transform.position = board.UpdatePlayerPosition (playerID, x, y);
+			if(board.HasEnemies(x, y)){
 
-				}
 			}
 		}
 	}
