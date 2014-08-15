@@ -14,6 +14,8 @@ public class TileManager : MonoBehaviour {
 	public GameObject Town;
 	public GameObject Ally;
 	public GameObject Enemy;
+	public Camera mainCamera;
+	private SmoothFollow cameraMovementScript;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -50,6 +52,9 @@ public class TileManager : MonoBehaviour {
 		}
 		boardTileWidth = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).x;
 		boardTileHeight = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).y;
+		//Create starting tile
+		CreateTile(25,25);
+		cameraMovementScript = mainCamera.GetComponent<SmoothFollow>();
 	}
 
 	public bool HasEnemies(int x, int y){
@@ -86,6 +91,8 @@ public class TileManager : MonoBehaviour {
 
 		CreateTile (x, y - 1);
 		CreateTile (x, y + 1);
+
+		cameraMovementScript.target = boardTileObjects[x,y].transform;
 		return CreateTile (x, y);
 	}
 

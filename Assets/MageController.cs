@@ -8,10 +8,10 @@ public class MageController : MonoBehaviour {
 	private int experience;
 	public GameObject GameBoardObject;
 	private TileManager board;
-	private GameObject boardLocation;
 	private int x = 25;
 	private int y = 25;
 	private int playerID = 0;
+	private bool boundToMouse = false;
 
 	// Use this for initialization
 	void Start () {
@@ -31,6 +31,13 @@ public class MageController : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+		if(boundToMouse){
+			if(Input.GetMouseButton(0)){
+				Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+				pos.z = 0f;
+				transform.position = pos;
+			}
+		}
 
 		//Move player based on key press. Q = NW, E = NE
 		//A = W, D = E, Z = SW, X = SE
@@ -75,6 +82,13 @@ public class MageController : MonoBehaviour {
 			transform.position = board.UpdatePlayerPosition (playerID, x, y);
 			if(board.HasEnemies(x, y)){
 
+			}
+		}
+		else if(Input.GetMouseButtonDown(0)){
+			Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			positionToCheck.z=0f;
+			if(renderer.bounds.Contains (positionToCheck)){
+				boundToMouse = true;
 			}
 		}
 	}
