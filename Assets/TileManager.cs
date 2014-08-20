@@ -4,7 +4,8 @@ using System.Collections;
 public class TileManager : MonoBehaviour {
 	//public GameObject player;
 	public GameObject GameBoardTile;
-	public Sprite GameBoardSprite;
+	public Sprite GameBoardSpriteDull;
+	public Sprite GameBoardSpriteBright;
 	public GameObject GameBoardBlockedTL;
 	public GameObject GameBoardBlockedTR;
 	public GameObject GameBoardBlockedL;
@@ -16,6 +17,7 @@ public class TileManager : MonoBehaviour {
 	public GameObject Enemy;
 	public Camera mainCamera;
 	private SmoothFollow cameraMovementScript;
+	private XYPair highlightedPosition;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -50,11 +52,14 @@ public class TileManager : MonoBehaviour {
 				boardTileTypes [i, j] = BoardTileType.Invisible;
 			}
 		}
-		boardTileWidth = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).x;
-		boardTileHeight = (GameBoardSprite.bounds.max - GameBoardSprite.bounds.min).y;
+		boardTileWidth = (GameBoardSpriteDull.bounds.max - GameBoardSpriteDull.bounds.min).x;
+		boardTileHeight = (GameBoardSpriteDull.bounds.max - GameBoardSpriteDull.bounds.min).y;
 		//Create starting tile
 		CreateTile(25,25);
 		cameraMovementScript = mainCamera.GetComponent<SmoothFollow>();
+		highlightedPosition = new XYPair();
+		highlightedPosition.x = 25;
+		highlightedPosition.y = 25;
 	}
 
 	public bool HasEnemies(int x, int y){
@@ -73,6 +78,74 @@ public class TileManager : MonoBehaviour {
 		
 		return (new Vector3(baselineX + (x - 25)*boardTileWidth + x_correction*boardTileWidth,
 		                    baselineY + (y - 25)*boardTileHeight*.75f));
+	}
+
+	public Vector3 UpdatePlayerPosition (int playerID, Vector3 p){
+		//xV = baselineX + (x - 25)* boardTileWidth + x_correction*boardTileWidth;
+		//xV - baselineX = x * boardTileWidth - 25 * boardTileWidth + x_correction * boardTileWidth;
+		//xV - x * boardTileWidth = -25 * boardTileWidth + x_correction * boardTileWidth + baselineX;
+		//-x * boardTileWidth = -xV -25 * boardTileWidth + x_correction * boardTileWidth + baselineX;
+		//x = xV / boardTileWidth + 25 - x_correction - baselineX / boardTileWidth
+		//x = 25 - x_correction + (xV - baselineX)/boardTileWidth;
+
+		//yV = y * boardTileHeight - 25 * boardTileHeight * .75f + baselineY
+		//yV -y * boardTileHeight = -25 * boardTileHeight * .75f + baselineY
+		//-y * boardTileHeight = -yV - 25 * boardTileHeight * .75f + baselineY
+		//-y = -yV / boardTileHeight - 25* .75f + baselineY / boardTileHeight
+		//y = yV / boardTileHeight + 25 * .75f - baselineY / boardTileHeight
+		//y = 25 * .75f + (yV - baselineY) / boardTileHeight
+		XYPair pair = ComputeXYFromPosition (p);
+
+		/*print ("x_correction = " + x_correction);
+		print("p.x = " + p.x);
+		print ("baselineX = " + baselineX);
+		print ("boardTileWidth = " +boardTileWidth);
+		print("p.y = " + p.y);
+		print ("baselineY = " + baselineY);
+		print ("boardTileHeight = " +boardTileHeight);
+
+		print("x = " + x);
+		print("y = " + y);*/
+		return UpdatePlayerPosition (playerID, pair.x, pair.y);
+	}
+	public struct XYPair {
+		public int x;
+		public int y;
+	}
+	private XYPair ComputeXYFromPosition (Vector3 pos){
+		XYPair pair = new XYPair();
+		pair.y = (int) (25 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
+		
+		float x_correction;
+		if(pair.y % 2 == 0)
+			x_correction = 0.5f;
+		else
+			x_correction = 0f;
+
+		pair.x = (int) (25 + 0.5f - x_correction + (pos.x - baselineX)/boardTileWidth);
+		return pair;
+	}
+	public void Update(){
+		HighlightMousePosition();
+	}
+
+	public void HighlightMousePosition (){
+		Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+		XYPair pair = ComputeXYFromPosition (positionToCheck);
+		if(pair.x != highlightedPosition.x || pair.y != highlightedPosition.y){
+			print("Highlighting mouse position");
+			SpriteRenderer tileRenderer;
+			if(boardTileObjects[pair.x, pair.y] != null)
+				tileRenderer = boardTileObjects[pair.x, pair.y].GetComponent<SpriteRenderer>();
+			else
+				return;
+
+			tileRenderer.sprite = GameBoardSpriteBright;
+			if(boardTileObjects[highlightedPosition.x, highlightedPosition.y] != null)
+				tileRenderer = boardTileObjects[highlightedPosition.x, highlightedPosition.y].GetComponent<SpriteRenderer>();
+			tileRenderer.sprite = GameBoardSpriteDull;
+			highlightedPosition = pair;
+		}
 	}
 
 	public Vector3 UpdatePlayerPosition (int playerID, int x, int y) {

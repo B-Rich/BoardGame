@@ -37,6 +37,10 @@ public class MageController : MonoBehaviour {
 				pos.z = 0f;
 				transform.position = pos;
 			}
+			else {
+				transform.position = board.UpdatePlayerPosition(playerID, transform.position);
+				boundToMouse = false;
+			}
 		}
 
 		//Move player based on key press. Q = NW, E = NE
