@@ -38,7 +38,10 @@ public class MageController : MonoBehaviour {
 				transform.position = pos;
 			}
 			else {
-				transform.position = board.UpdatePlayerPosition(playerID, transform.position);
+				TileManager.XYPair pair = board.ComputeXYFromPosition(transform.position);
+				transform.position = board.UpdatePlayerPosition(playerID, pair.x, pair.y);
+				x = pair.x;
+				y = pair.y;
 				boundToMouse = false;
 			}
 		}

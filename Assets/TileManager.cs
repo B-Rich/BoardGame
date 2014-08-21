@@ -112,7 +112,7 @@ public class TileManager : MonoBehaviour {
 		public int x;
 		public int y;
 	}
-	private XYPair ComputeXYFromPosition (Vector3 pos){
+	public XYPair ComputeXYFromPosition (Vector3 pos){
 		XYPair pair = new XYPair();
 		pair.y = (int) (25 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
 		
