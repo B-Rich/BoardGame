@@ -33,6 +33,10 @@ public class TileManager : MonoBehaviour {
 		Grass,
 		Enemy
 	}
+	public struct XYPair {
+		public int x;
+		public int y;
+	}
 
 	//For now I'll keep track of the type of tile separately
 	//from the tile objects, mostly because I don't want to run 
@@ -69,6 +73,53 @@ public class TileManager : MonoBehaviour {
 		return false;
 	}
 
+	public static XYPair MoveNW(XYPair pair){
+		XYPair retval = pair;
+		if(pair.x > 0)
+			retval.x = pair.x - (pair.y % 2);
+		if(pair.y < TileManager.BOARD_HEIGHT - 1)
+			retval.y = pair.y + 1;
+		return retval;
+	}
+
+	public static XYPair MoveNE(XYPair pair){
+		XYPair retval = pair;
+		if(pair.x < TileManager.BOARD_WIDTH - 1)
+			retval.x = pair.x + ((pair.y+1) % 2);
+		if(pair.y < TileManager.BOARD_HEIGHT - 1)
+			retval.y = pair.y + 1;
+		return retval;
+	}
+
+	public static XYPair MoveW(XYPair pair){
+		XYPair retval = pair;
+		if(pair.x > 0)
+			retval.x = pair.x - 1;
+		return retval;
+	}
+
+	public static XYPair MoveE(XYPair pair){
+		XYPair retval = pair;
+		if(pair.x < TileManager.BOARD_WIDTH - 1)
+			retval.x = pair.x + 1;
+		return retval;
+	}
+	public static XYPair MoveSW(XYPair pair){
+		XYPair retval = pair;
+		if(pair.x > 0)
+			retval.x = pair.x - (pair.y % 2);
+		if(pair.y > 0)
+			retval.y = pair.y - 1;
+		return retval;
+	}
+	public static XYPair MoveSE(XYPair pair){
+		XYPair retval = pair;
+		if(pair.x < TileManager.BOARD_WIDTH - 1)
+			retval.x = pair.x + ((pair.y+1) % 2);
+		if(pair.y > 0)
+			retval.y = pair.y - 1;
+		return retval;
+	}
 	public Vector3 ComputePosition (int x, int y) {
 		float x_correction;
 		if(y % 2 == 0)
@@ -106,12 +157,9 @@ public class TileManager : MonoBehaviour {
 
 		print("x = " + x);
 		print("y = " + y);*/
-		return UpdatePlayerPosition (playerID, pair.x, pair.y);
+		return UpdatePlayerPosition (playerID, pair);
 	}
-	public struct XYPair {
-		public int x;
-		public int y;
-	}
+
 	public XYPair ComputeXYFromPosition (Vector3 pos){
 		XYPair pair = new XYPair();
 		pair.y = (int) (25 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
@@ -129,11 +177,50 @@ public class TileManager : MonoBehaviour {
 		HighlightMousePosition();
 	}
 
+	//Returns an XYPair one step in the direction of end, starting from start on the hex grid
+	public static XYPair PairAlongDirection(XYPair start, XYPair end){
+		if(start.x == end.x && start.y == end.y){
+			return start;
+		}
+
+		//equal y value means x moves left or right one space
+		if(start.y == end.y){
+			if(start.x > end.x){
+				return MoveW(start);
+			}
+			else{
+				return MoveE (start);
+			}
+		}
+
+		if(start.y < end.y){
+			if(start.y % 2 == 0){
+				if(end.x <= start.x){
+					return (MoveNW (start));
+				}
+				return (MoveNE (start));
+			}
+			if(end.x < start.x){
+				return (MoveNW (start));
+			}
+			return (MoveNE (start));
+		}
+		if(start.y % 2 == 0){
+			if(end.x <= start.x){
+				return (MoveSW (start));
+			}
+			return (MoveSE (start));
+		}
+		if(end.x < start.x){
+			return (MoveSW (start));
+		}
+		return (MoveSE (start));
+	}
+
 	public void HighlightMousePosition (){
 		Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 		XYPair pair = ComputeXYFromPosition (positionToCheck);
 		if(pair.x != highlightedPosition.x || pair.y != highlightedPosition.y){
-			print("Highlighting mouse position");
 			SpriteRenderer tileRenderer;
 			if(boardTileObjects[pair.x, pair.y] != null)
 				tileRenderer = boardTileObjects[pair.x, pair.y].GetComponent<SpriteRenderer>();
@@ -148,25 +235,25 @@ public class TileManager : MonoBehaviour {
 		}
 	}
 
-	public Vector3 UpdatePlayerPosition (int playerID, int x, int y) {
+	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
 		//Extra tiles go here?
-		if(y % 2 == 0){
-			CreateTile (x + 1, y + 1);
-			CreateTile (x + 1, y - 1);
+		if(pair.y % 2 == 0){
+			CreateTile (pair.x + 1, pair.y + 1);
+			CreateTile (pair.x + 1, pair.y - 1);
 		}
 		else {
-			CreateTile (x - 1, y - 1);
-			CreateTile (x - 1, y + 1);
+			CreateTile (pair.x - 1, pair.y - 1);
+			CreateTile (pair.x - 1, pair.y + 1);
 		}
 
-		CreateTile (x - 1, y);
-		CreateTile (x + 1, y);
+		CreateTile (pair.x - 1, pair.y);
+		CreateTile (pair.x + 1, pair.y);
 
-		CreateTile (x, y - 1);
-		CreateTile (x, y + 1);
+		CreateTile (pair.x, pair.y - 1);
+		CreateTile (pair.x, pair.y + 1);
 
-		cameraMovementScript.target = boardTileObjects[x,y].transform;
-		return CreateTile (x, y);
+		cameraMovementScript.target = boardTileObjects[pair.x,pair.y].transform;
+		return CreateTile (pair.x, pair.y);
 	}
 
 	Vector3 CreateTile (int x, int y){
@@ -179,21 +266,21 @@ public class TileManager : MonoBehaviour {
 				//Determine which extra crap goes on this tile (ally, town, enemy, or grass for now)
 				float rng = Random.value;
 				if(rng < .3f){
-					print ("Town boardtype");
+					/*print ("Town boardtype");*/
 					boardTileTypes[x, y] = BoardTileType.Town;
 					InstantiateAndDisplay (boardTileObjects[x, y],Town, tilePosition);
 				}
 				else if(rng < .4f){
-					print("Ally boardtype");
+					/*print("Ally boardtype");*/
 					boardTileTypes[x, y] = BoardTileType.Ally;
 					InstantiateAndDisplay (boardTileObjects[x, y],Ally, tilePosition);
 				}
 				else if(rng < .9f){
-					print ("Grass boardtype");
+					/*print ("Grass boardtype");*/
 					boardTileTypes[x, y] = BoardTileType.Grass;
 				}
 				else{
-					print ("Enemy boardtype");
+					/*print ("Enemy boardtype");*/
 					boardTileTypes[x, y] = BoardTileType.Enemy;
 					InstantiateAndDisplay (boardTileObjects[x, y],Enemy, tilePosition);
 				}

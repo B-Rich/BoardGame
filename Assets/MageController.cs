@@ -8,15 +8,17 @@ public class MageController : MonoBehaviour {
 	private int experience;
 	public GameObject GameBoardObject;
 	private TileManager board;
-	private int x = 25;
-	private int y = 25;
+	private TileManager.XYPair coords;
 	private int playerID = 0;
 	private bool boundToMouse = false;
 
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
-		board.UpdatePlayerPosition(playerID, x, y);
+		coords = new TileManager.XYPair();
+		coords.x = 25;
+		coords.y = 25;
+		board.UpdatePlayerPosition(playerID, coords);
 	}
 
 	public bool TakeDamage(int dmg){
@@ -38,10 +40,9 @@ public class MageController : MonoBehaviour {
 				transform.position = pos;
 			}
 			else {
-				TileManager.XYPair pair = board.ComputeXYFromPosition(transform.position);
-				transform.position = board.UpdatePlayerPosition(playerID, pair.x, pair.y);
-				x = pair.x;
-				y = pair.y;
+				TileManager.XYPair mousePosPair = board.ComputeXYFromPosition(transform.position);
+				coords = TileManager.PairAlongDirection(coords, mousePosPair);
+				transform.position = board.UpdatePlayerPosition(playerID, coords);
 				boundToMouse = false;
 			}
 		}
@@ -55,39 +56,45 @@ public class MageController : MonoBehaviour {
 		   Input.GetKeyDown (KeyCode.Z) ||
 		   Input.GetKeyDown (KeyCode.X)) {
 			if (Input.GetKey (KeyCode.Q)) {
-				if(x > 0)
+				coords = TileManager.MoveNW(coords);
+				/*if(x > 0)
 					x-= (y % 2);
 				if(y < TileManager.BOARD_HEIGHT - 1)
-					y++;
+					y++;*/
 			}
 			if (Input.GetKey (KeyCode.E)) {
-				if(x < TileManager.BOARD_WIDTH - 1)
+				coords = TileManager.MoveNE(coords);
+				/*if(x < TileManager.BOARD_WIDTH - 1)
 					x+= ((y+1) % 2);
 				if(y < TileManager.BOARD_HEIGHT - 1)
-					y++;
+					y++;*/
 			}
 			if (Input.GetKey (KeyCode.A)) {
-				if(x > 0)
-					x--;
+				coords = TileManager.MoveW(coords);
+				/*if(x > 0)
+					x--;*/
 			}
 			if (Input.GetKey (KeyCode.D)) {
-				if(x < TileManager.BOARD_WIDTH - 1)
-					x++;
+				coords = TileManager.MoveE (coords);
+				/*if(x < TileManager.BOARD_WIDTH - 1)
+					x++;*/
 			}
 			if (Input.GetKey (KeyCode.Z)) {
-				if(x > 0)
+				coords = TileManager.MoveSW(coords);
+				/*if(x > 0)
 					x-= (y % 2);
 				if(y > 0)
-					y--;
+					y--;*/
 			}
 			if (Input.GetKey (KeyCode.X)) {
-				if(x < TileManager.BOARD_WIDTH - 1)
+				coords = TileManager.MoveSE (coords);
+				/*if(x < TileManager.BOARD_WIDTH - 1)
 					x+= ((y+1) % 2);
 				if(y > 0)
-					y--;
+					y--;*/
 			}
-			transform.position = board.UpdatePlayerPosition (playerID, x, y);
-			if(board.HasEnemies(x, y)){
+			transform.position = board.UpdatePlayerPosition (playerID, coords);
+			if(board.HasEnemies(coords.x, coords.y)){
 
 			}
 		}
