@@ -2,7 +2,6 @@
 using System.Collections;
 
 public class TileManager : MonoBehaviour {
-	//public GameObject player;
 	public GameObject GameBoardTile;
 	public Sprite GameBoardSpriteDull;
 	public Sprite GameBoardSpriteBright;
