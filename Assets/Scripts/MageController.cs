@@ -105,5 +105,10 @@ public class MageController : MonoBehaviour {
 				boundToMouse = true;
 			}
 		}
+		else if(Input.GetKeyDown (KeyCode.Space)){
+			Vector3 mainCamPos = transform.position;
+			mainCamPos.z -= 10f;
+			Camera.main.transform.position = mainCamPos;
+		}
 	}
 }

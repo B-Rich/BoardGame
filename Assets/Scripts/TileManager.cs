@@ -170,6 +170,18 @@ public class TileManager : MonoBehaviour {
 			x_correction = 0f;
 
 		pair.x = (int) (25 + 0.5f - x_correction + (pos.x - baselineX)/boardTileWidth);
+		if(pair.x < 0){
+			pair.x = 0;
+		}
+		else if(pair.x >= BOARD_WIDTH){
+			pair.x = BOARD_WIDTH - 1;
+		}
+		if(pair.y < 0){
+			pair.y = 0;
+		}
+		else if(pair.y >= BOARD_HEIGHT){
+			pair.y = BOARD_HEIGHT - 1;
+		}
 		return pair;
 	}
 	public void Update(){
