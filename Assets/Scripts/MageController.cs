@@ -21,6 +21,19 @@ public class MageController : MonoBehaviour {
 		board.UpdatePlayerPosition(playerID, coords);
 	}
 
+	//Blows up all objects on tiles around coords
+	public void CastSpell(TileManager.XYPair coords, int radius){
+		BoardTile[] tiles = board.GetTilesAroundPoint(coords, radius);
+
+		foreach (BoardTile tile in tiles){
+			print (tile.type);
+			if(tile.type != BoardTile.TileType.Grass && tile.type != BoardTile.TileType.Invisible){
+				tile.type = BoardTile.TileType.Grass;
+				Destroy(tile.gameObject.transform.GetChild(0).gameObject);
+			}
+		}
+	}
+
 	public bool TakeDamage(int dmg){
 		hp -= dmg;
 		if (hp < 0){
@@ -103,6 +116,9 @@ public class MageController : MonoBehaviour {
 			positionToCheck.z=0f;
 			if(renderer.bounds.Contains (positionToCheck)){
 				boundToMouse = true;
+			}
+			else {
+				CastSpell(board.ComputeXYFromPosition(positionToCheck), 1);
 			}
 		}
 		else if(Input.GetKeyDown (KeyCode.Space)){

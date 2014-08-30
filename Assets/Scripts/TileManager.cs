@@ -15,7 +15,6 @@ public class TileManager : MonoBehaviour {
 	public GameObject Ally;
 	public GameObject Enemy;
 	public Camera mainCamera;
-	private SmoothFollow cameraMovementScript;
 	private XYPair highlightedPosition;
 
 	float boardTileWidth;
@@ -24,49 +23,32 @@ public class TileManager : MonoBehaviour {
 	float baselineY;
 	public const int BOARD_HEIGHT = 50;
 	public const int BOARD_WIDTH = 50;
-	
-	public enum BoardTileType {
-		Invisible,
-		Town,
-		Ally,
-		Grass,
-		Enemy
-	}
+
 	public struct XYPair {
 		public int x;
 		public int y;
 	}
-
-	//For now I'll keep track of the type of tile separately
-	//from the tile objects, mostly because I don't want to run 
-	//a script on every single tile object
-	BoardTileType[,] boardTileTypes;
-	GameObject[,] boardTileObjects;
+	
+	BoardTile[,] boardTiles;
 
 	// Use this for initialization
 	void Start () {
 		baselineX = GameBoardTile.transform.position.x;
 		baselineY = GameBoardTile.transform.position.y;
 
-		boardTileTypes = new BoardTileType[BOARD_HEIGHT, BOARD_WIDTH];
-		boardTileObjects = new GameObject[BOARD_HEIGHT, BOARD_WIDTH];
-		for (int i = 0; i < BOARD_HEIGHT; i++) {
-			for (int j = 0; j < BOARD_WIDTH; j++) {
-				boardTileTypes [i, j] = BoardTileType.Invisible;
-			}
-		}
+		boardTiles = new BoardTile[BOARD_HEIGHT, BOARD_WIDTH];
+
 		boardTileWidth = (GameBoardSpriteDull.bounds.max - GameBoardSpriteDull.bounds.min).x;
 		boardTileHeight = (GameBoardSpriteDull.bounds.max - GameBoardSpriteDull.bounds.min).y;
 		//Create starting tile
 		CreateTile(25,25);
-		cameraMovementScript = mainCamera.GetComponent<SmoothFollow>();
 		highlightedPosition = new XYPair();
 		highlightedPosition.x = 25;
 		highlightedPosition.y = 25;
 	}
 
 	public bool HasEnemies(int x, int y){
-		if(boardTileTypes[y, x] == BoardTileType.Enemy){
+		if(boardTiles[x, y].type == BoardTile.TileType.Enemy){
 			return true;
 		}
 		return false;
@@ -233,71 +215,75 @@ public class TileManager : MonoBehaviour {
 		XYPair pair = ComputeXYFromPosition (positionToCheck);
 		if(pair.x != highlightedPosition.x || pair.y != highlightedPosition.y){
 			SpriteRenderer tileRenderer;
-			if(boardTileObjects[pair.x, pair.y] != null)
-				tileRenderer = boardTileObjects[pair.x, pair.y].GetComponent<SpriteRenderer>();
+			if(boardTiles[pair.x, pair.y] != null)
+				tileRenderer = boardTiles[pair.x, pair.y].GetComponent<SpriteRenderer>();
 			else
 				return;
 
 			tileRenderer.sprite = GameBoardSpriteBright;
-			if(boardTileObjects[highlightedPosition.x, highlightedPosition.y] != null)
-				tileRenderer = boardTileObjects[highlightedPosition.x, highlightedPosition.y].GetComponent<SpriteRenderer>();
+			if(boardTiles[highlightedPosition.x, highlightedPosition.y] != null)
+				tileRenderer = boardTiles[highlightedPosition.x, highlightedPosition.y].GetComponent<SpriteRenderer>();
 			tileRenderer.sprite = GameBoardSpriteDull;
 			highlightedPosition = pair;
 		}
 	}
 
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
-		//Extra tiles go here?
-		if(pair.y % 2 == 0){
-			CreateTile (pair.x + 1, pair.y + 1);
-			CreateTile (pair.x + 1, pair.y - 1);
-		}
-		else {
-			CreateTile (pair.x - 1, pair.y - 1);
-			CreateTile (pair.x - 1, pair.y + 1);
-		}
-
-		CreateTile (pair.x - 1, pair.y);
-		CreateTile (pair.x + 1, pair.y);
-
-		CreateTile (pair.x, pair.y - 1);
-		CreateTile (pair.x, pair.y + 1);
-
-		cameraMovementScript.target = boardTileObjects[pair.x,pair.y].transform;
-		return CreateTile (pair.x, pair.y);
+		return GetTilesAroundPoint (pair, 2)[6].transform.position;
 	}
 
-	Vector3 CreateTile (int x, int y){
+	public BoardTile[] GetTilesAroundPoint (XYPair point, int radius){
+		BoardTile[] retval = new BoardTile[((radius+1)*3)*(radius)+1];
+		int i = 0;
+		if(point.y % 2 == 0){
+			retval[i++] = CreateTile (point.x + 1, point.y + 1);
+			retval[i++] = CreateTile (point.x + 1, point.y - 1);
+		}
+		else {
+			retval[i++] = CreateTile (point.x - 1, point.y - 1);
+			retval[i++] = CreateTile (point.x - 1, point.y + 1);
+		}
+		
+		retval[i++] = CreateTile (point.x - 1, point.y);
+		retval[i++] = CreateTile (point.x + 1, point.y);
+		
+		retval[i++] = CreateTile (point.x, point.y - 1);
+		retval[i++] = CreateTile (point.x, point.y + 1);
+		retval[i++] = CreateTile (point.x, point.y);
+		return retval;
+	}
+
+	BoardTile CreateTile (int x, int y){
 		Vector3 tilePosition = ComputePosition(x, y);
 
 		//Only check within bounds of board matrices
 		if(x >= 0 && y >= 0 && x < BOARD_WIDTH && y < BOARD_HEIGHT){
-			if (boardTileTypes [x, y] == BoardTileType.Invisible) {
-				boardTileObjects[x, y] = InstantiateTileObject(x, y);
+			if (!boardTiles [x, y]) {
+				boardTiles[x, y] = InstantiateTileObject(x, y);
 				//Determine which extra crap goes on this tile (ally, town, enemy, or grass for now)
 				float rng = Random.value;
 				if(rng < .3f){
 					/*print ("Town boardtype");*/
-					boardTileTypes[x, y] = BoardTileType.Town;
-					InstantiateAndDisplay (boardTileObjects[x, y],Town, tilePosition);
+					boardTiles[x, y].type = BoardTile.TileType.Town;
+					InstantiateAndDisplay (boardTiles[x, y].gameObject,Town, tilePosition);
 				}
 				else if(rng < .4f){
 					/*print("Ally boardtype");*/
-					boardTileTypes[x, y] = BoardTileType.Ally;
-					InstantiateAndDisplay (boardTileObjects[x, y],Ally, tilePosition);
+					boardTiles[x, y].type = BoardTile.TileType.Ally;
+					InstantiateAndDisplay (boardTiles[x, y].gameObject,Ally, tilePosition);
 				}
 				else if(rng < .9f){
 					/*print ("Grass boardtype");*/
-					boardTileTypes[x, y] = BoardTileType.Grass;
+					boardTiles[x, y].type = BoardTile.TileType.Grass;
 				}
 				else{
 					/*print ("Enemy boardtype");*/
-					boardTileTypes[x, y] = BoardTileType.Enemy;
-					InstantiateAndDisplay (boardTileObjects[x, y],Enemy, tilePosition);
+					boardTiles[x, y].type = BoardTile.TileType.Enemy;
+					InstantiateAndDisplay (boardTiles[x, y].gameObject,Enemy, tilePosition);
 				}
 			}
 		}
-		return tilePosition;
+		return boardTiles[x,y];
 	}
 
 	void InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
@@ -306,7 +292,7 @@ public class TileManager : MonoBehaviour {
 		temp.transform.parent = parentTile.transform;
 	}
 
-	GameObject InstantiateTileObject(int x, int y){
+	BoardTile InstantiateTileObject(int x, int y){
 		Vector3 playerPosition = ComputePosition (x, y);
 		GameObject tile;
 		bool closedLeft = false;
@@ -343,7 +329,7 @@ public class TileManager : MonoBehaviour {
 		}
 		tile = Instantiate (GameBoardTile, playerPosition, Quaternion.identity) as GameObject;
 		if(closedTopLeft){
-			InstantiateAndDisplay(tile, GameBoardBlockedTL, playerPosition);
+			InstantiateAndDisplay (tile, GameBoardBlockedTL, playerPosition);
 		}
 		if(closedTopRight){
 			InstantiateAndDisplay (tile, GameBoardBlockedTR, playerPosition);
@@ -360,6 +346,6 @@ public class TileManager : MonoBehaviour {
 		if(closedBottomRight){
 			InstantiateAndDisplay (tile, GameBoardBlockedBR, playerPosition);
 		}
-		return (tile);
+		return (tile.GetComponent<BoardTile>());
 	}
 }
