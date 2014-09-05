@@ -9,16 +9,20 @@ public class MageController : MonoBehaviour {
 	public GameObject GameBoardObject;
 	private TileManager board;
 	private TileManager.XYPair coords;
-	private int playerID = 0;
+	public int playerID;
 	private bool boundToMouse = false;
 
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
 		coords = new TileManager.XYPair();
-		coords.x = 25;
-		coords.y = 25;
-		board.UpdatePlayerPosition(playerID, coords);
+		coords.x = TileManager.BOARD_WIDTH / 2;
+		coords.y = TileManager.BOARD_HEIGHT / 2;
+		if(!board.RegisterPlayer(playerID, gameObject)){
+			print ("Invalid player id");
+		}
+		coords = board.SetStartingPosition(playerID);
+		transform.position = board.ComputePosition(coords.x, coords.y);
 	}
 
 	//Blows up all objects on tiles around coords
@@ -26,7 +30,6 @@ public class MageController : MonoBehaviour {
 		BoardTile[] tiles = board.GetTilesAroundPoint(coords, radius);
 
 		foreach (BoardTile tile in tiles){
-			print (tile.type);
 			if(tile.type != BoardTile.TileType.Grass && tile.type != BoardTile.TileType.Invisible){
 				tile.type = BoardTile.TileType.Grass;
 				Destroy(tile.gameObject.transform.GetChild(0).gameObject);
@@ -44,8 +47,7 @@ public class MageController : MonoBehaviour {
 			return false;
 	}
 
-	// Update is called once per frame
-	void Update () {
+	void HandlePlayerInput(){
 		if(boundToMouse){
 			if(Input.GetMouseButton(0)){
 				Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -59,7 +61,7 @@ public class MageController : MonoBehaviour {
 				boundToMouse = false;
 			}
 		}
-
+		
 		//Move player based on key press. Q = NW, E = NE
 		//A = W, D = E, Z = SW, X = SE
 		if(Input.GetKeyDown (KeyCode.Q) || 
@@ -108,7 +110,7 @@ public class MageController : MonoBehaviour {
 			}
 			transform.position = board.UpdatePlayerPosition (playerID, coords);
 			if(board.HasEnemies(coords.x, coords.y)){
-
+				
 			}
 		}
 		else if(Input.GetMouseButtonDown(0)){
@@ -125,6 +127,13 @@ public class MageController : MonoBehaviour {
 			Vector3 mainCamPos = transform.position;
 			mainCamPos.z -= 10f;
 			Camera.main.transform.position = mainCamPos;
+		}
+	}
+
+	// Update is called once per frame
+	void Update () {
+		if(board.GetCurrentPlayerID() == playerID){
+			HandlePlayerInput();
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 
 public class TileManager : MonoBehaviour {
+	private BoardTile blankTile;
 	public GameObject GameBoardTile;
 	public Sprite GameBoardSpriteDull;
 	public Sprite GameBoardSpriteBright;
@@ -16,13 +17,18 @@ public class TileManager : MonoBehaviour {
 	public GameObject Enemy;
 	public Camera mainCamera;
 	private XYPair highlightedPosition;
+	private int currentPlayer;
+	private int numPlayers;
 
 	float boardTileWidth;
 	float boardTileHeight;
 	float baselineX;
 	float baselineY;
-	public const int BOARD_HEIGHT = 50;
-	public const int BOARD_WIDTH = 50;
+	public const int BOARD_HEIGHT = 14;
+	public const int BOARD_WIDTH = 14;
+
+	GameObject[] players;
+	XYPair[] playerLocations;
 
 	public struct XYPair {
 		public int x;
@@ -41,10 +47,19 @@ public class TileManager : MonoBehaviour {
 		boardTileWidth = (GameBoardSpriteDull.bounds.max - GameBoardSpriteDull.bounds.min).x;
 		boardTileHeight = (GameBoardSpriteDull.bounds.max - GameBoardSpriteDull.bounds.min).y;
 		//Create starting tile
-		CreateTile(25,25);
+		for (int i = 0; i < BOARD_WIDTH; i++){
+			for(int j = 0; j < BOARD_HEIGHT; j++){
+				CreateTile(i,j);
+			}
+		}
 		highlightedPosition = new XYPair();
-		highlightedPosition.x = 25;
-		highlightedPosition.y = 25;
+		highlightedPosition.x = BOARD_WIDTH / 2;
+		highlightedPosition.y = BOARD_HEIGHT / 2;
+
+		blankTile = (Instantiate (GameBoardTile, new Vector3(0f,0f), Quaternion.identity) as GameObject).GetComponent<BoardTile>();
+		players = new GameObject[4];
+		playerLocations = new XYPair[4];
+		currentPlayer = 0;
 	}
 
 	public bool HasEnemies(int x, int y){
@@ -101,6 +116,20 @@ public class TileManager : MonoBehaviour {
 			retval.y = pair.y - 1;
 		return retval;
 	}
+	public XYPair SetStartingPosition(int playerID){
+		XYPair retval;
+		retval.x = BOARD_WIDTH / 2;
+		if(playerID == 0){
+			retval.y = BOARD_HEIGHT - 1;
+		}
+		else if(playerID == 1){
+			retval.y = 0;
+		}
+		else{
+			retval.y = -1;
+		}
+		return retval;
+	}
 	public Vector3 ComputePosition (int x, int y) {
 		float x_correction;
 		if(y % 2 == 0)
@@ -108,42 +137,13 @@ public class TileManager : MonoBehaviour {
 		else
 			x_correction = 0f;
 		
-		return (new Vector3(baselineX + (x - 25)*boardTileWidth + x_correction*boardTileWidth,
-		                    baselineY + (y - 25)*boardTileHeight*.75f));
-	}
-
-	public Vector3 UpdatePlayerPosition (int playerID, Vector3 p){
-		//xV = baselineX + (x - 25)* boardTileWidth + x_correction*boardTileWidth;
-		//xV - baselineX = x * boardTileWidth - 25 * boardTileWidth + x_correction * boardTileWidth;
-		//xV - x * boardTileWidth = -25 * boardTileWidth + x_correction * boardTileWidth + baselineX;
-		//-x * boardTileWidth = -xV -25 * boardTileWidth + x_correction * boardTileWidth + baselineX;
-		//x = xV / boardTileWidth + 25 - x_correction - baselineX / boardTileWidth
-		//x = 25 - x_correction + (xV - baselineX)/boardTileWidth;
-
-		//yV = y * boardTileHeight - 25 * boardTileHeight * .75f + baselineY
-		//yV -y * boardTileHeight = -25 * boardTileHeight * .75f + baselineY
-		//-y * boardTileHeight = -yV - 25 * boardTileHeight * .75f + baselineY
-		//-y = -yV / boardTileHeight - 25* .75f + baselineY / boardTileHeight
-		//y = yV / boardTileHeight + 25 * .75f - baselineY / boardTileHeight
-		//y = 25 * .75f + (yV - baselineY) / boardTileHeight
-		XYPair pair = ComputeXYFromPosition (p);
-
-		/*print ("x_correction = " + x_correction);
-		print("p.x = " + p.x);
-		print ("baselineX = " + baselineX);
-		print ("boardTileWidth = " +boardTileWidth);
-		print("p.y = " + p.y);
-		print ("baselineY = " + baselineY);
-		print ("boardTileHeight = " +boardTileHeight);
-
-		print("x = " + x);
-		print("y = " + y);*/
-		return UpdatePlayerPosition (playerID, pair);
+		return (new Vector3(baselineX + (x - BOARD_WIDTH / 2f)*boardTileWidth + x_correction*boardTileWidth,
+		                    baselineY + (y - BOARD_HEIGHT / 2f)*boardTileHeight*.75f));
 	}
 
 	public XYPair ComputeXYFromPosition (Vector3 pos){
 		XYPair pair = new XYPair();
-		pair.y = (int) (25 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
+		pair.y = (int) (BOARD_HEIGHT / 2 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
 		
 		float x_correction;
 		if(pair.y % 2 == 0)
@@ -151,7 +151,7 @@ public class TileManager : MonoBehaviour {
 		else
 			x_correction = 0f;
 
-		pair.x = (int) (25 + 0.5f - x_correction + (pos.x - baselineX)/boardTileWidth);
+		pair.x = (int) (BOARD_WIDTH / 2 + 0.5f - x_correction + (pos.x - baselineX)/boardTileWidth);
 		if(pair.x < 0){
 			pair.x = 0;
 		}
@@ -228,7 +228,36 @@ public class TileManager : MonoBehaviour {
 		}
 	}
 
+	public bool RegisterPlayer (int playerID, GameObject player){
+		if(playerID < 0 || playerID > 3){
+			return false;
+		}
+		numPlayers++;
+		
+		players[playerID] = player;
+		playerLocations[playerID] = ComputeXYFromPosition(player.transform.position);
+		return true;
+	}
+	
+	public int GetCurrentPlayerID(){
+		return currentPlayer;
+	}
+	
+	public Vector3 UpdatePlayerPosition (int playerID, Vector3 p){
+		XYPair pair = ComputeXYFromPosition (p);
+		
+		return UpdatePlayerPosition (playerID, pair);
+	}
+
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
+		if(playerID >= numPlayers || playerID < 0)
+			print ("playerID is out of bounds");
+
+		if(playerID != currentPlayer)
+			return players[playerID].transform.position;
+		
+		currentPlayer = (currentPlayer + 1) % numPlayers;
+
 		return GetTilesAroundPoint (pair, 2)[6].transform.position;
 	}
 
@@ -254,6 +283,9 @@ public class TileManager : MonoBehaviour {
 	}
 
 	BoardTile CreateTile (int x, int y){
+		if(x  >= BOARD_WIDTH || x < 0 || y >= BOARD_HEIGHT || y < 0){
+			return blankTile;
+		}
 		Vector3 tilePosition = ComputePosition(x, y);
 
 		//Only check within bounds of board matrices
@@ -289,7 +321,8 @@ public class TileManager : MonoBehaviour {
 	void InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
 		GameObject temp = Instantiate (tile, playerLoc, Quaternion.identity) as GameObject;
 		temp.renderer.enabled = true;
-		temp.transform.parent = parentTile.transform;
+		if(parentTile)
+			temp.transform.parent = parentTile.transform;
 	}
 
 	BoardTile InstantiateTileObject(int x, int y){
@@ -329,22 +362,22 @@ public class TileManager : MonoBehaviour {
 		}
 		tile = Instantiate (GameBoardTile, playerPosition, Quaternion.identity) as GameObject;
 		if(closedTopLeft){
-			InstantiateAndDisplay (tile, GameBoardBlockedTL, playerPosition);
+			InstantiateAndDisplay (null, GameBoardBlockedTL, playerPosition);
 		}
 		if(closedTopRight){
-			InstantiateAndDisplay (tile, GameBoardBlockedTR, playerPosition);
+			InstantiateAndDisplay (null, GameBoardBlockedTR, playerPosition);
 		}
 		if(closedLeft){
-			InstantiateAndDisplay (tile, GameBoardBlockedL, playerPosition);
+			InstantiateAndDisplay (null, GameBoardBlockedL, playerPosition);
 		}
 		if(closedRight){
-			InstantiateAndDisplay (tile, GameBoardBlockedR, playerPosition);
+			InstantiateAndDisplay (null, GameBoardBlockedR, playerPosition);
 		}
 		if(closedBottomLeft){
-			InstantiateAndDisplay (tile, GameBoardBlockedBL, playerPosition);
+			InstantiateAndDisplay (null, GameBoardBlockedBL, playerPosition);
 		}
 		if(closedBottomRight){
-			InstantiateAndDisplay (tile, GameBoardBlockedBR, playerPosition);
+			InstantiateAndDisplay (null, GameBoardBlockedBR, playerPosition);
 		}
 		return (tile.GetComponent<BoardTile>());
 	}
