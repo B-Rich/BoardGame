@@ -4,10 +4,7 @@ using System.Collections;
 public class BoardTile : MonoBehaviour {
 	public enum TileType {
 		Invisible,
-		Town,
-		Ally,
-		Grass,
-		Enemy
+		Grass
 	}
 	public TileType type;
 
@@ -18,5 +15,11 @@ public class BoardTile : MonoBehaviour {
 
 	void Awake() {
 		//this.gameObject.SetActive (false);
+	}
+	public void PropegateDamage(int damage){
+		CreatureController[] creatures = GetComponentsInChildren<CreatureController>();
+		foreach (CreatureController creature in creatures){
+			creature.TakeDamage(damage);
+		}
 	}
 }

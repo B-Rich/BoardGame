@@ -6,14 +6,14 @@ public class TileManager : MonoBehaviour {
 	public GameObject GameBoardTile;
 	public Sprite GameBoardSpriteDull;
 	public Sprite GameBoardSpriteBright;
+	public Sprite redGuy;
+	public Sprite blueGuy;
 	public GameObject GameBoardBlockedTL;
 	public GameObject GameBoardBlockedTR;
 	public GameObject GameBoardBlockedL;
 	public GameObject GameBoardBlockedR;
 	public GameObject GameBoardBlockedBL;
 	public GameObject GameBoardBlockedBR;
-	public GameObject Town;
-	public GameObject Ally;
 	public GameObject Enemy;
 	public Camera mainCamera;
 	private XYPair highlightedPosition;
@@ -60,13 +60,6 @@ public class TileManager : MonoBehaviour {
 		players = new GameObject[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
-	}
-
-	public bool HasEnemies(int x, int y){
-		if(boardTiles[x, y].type == BoardTile.TileType.Enemy){
-			return true;
-		}
-		return false;
 	}
 
 	public static XYPair MoveNW(XYPair pair){
@@ -248,16 +241,17 @@ public class TileManager : MonoBehaviour {
 		
 		return UpdatePlayerPosition (playerID, pair);
 	}
-
+	public void AdvancePlayer(){
+		print ("advancing player");
+		currentPlayer = (currentPlayer + 1) % numPlayers;
+	}
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
 		if(playerID >= numPlayers || playerID < 0)
 			print ("playerID is out of bounds");
 
 		if(playerID != currentPlayer)
 			return players[playerID].transform.position;
-		
-		currentPlayer = (currentPlayer + 1) % numPlayers;
-
+		AdvancePlayer ();
 		return GetTilesAroundPoint (pair, 2)[6].transform.position;
 	}
 
@@ -282,47 +276,34 @@ public class TileManager : MonoBehaviour {
 		return retval;
 	}
 
+	public void SummonImp(int playerID, XYPair coords){
+		GameObject temp = InstantiateAndDisplay (
+			boardTiles[coords.x, coords.y].gameObject, 
+			Enemy, 
+			ComputePosition (coords.x, coords.y));
+		CreatureController cc = temp.GetComponent<CreatureController>();
+		cc.Init (playerID, CreatureController.CreatureType.Imp);
+	}
+
 	BoardTile CreateTile (int x, int y){
 		if(x  >= BOARD_WIDTH || x < 0 || y >= BOARD_HEIGHT || y < 0){
 			return blankTile;
 		}
-		Vector3 tilePosition = ComputePosition(x, y);
-
 		//Only check within bounds of board matrices
 		if(x >= 0 && y >= 0 && x < BOARD_WIDTH && y < BOARD_HEIGHT){
 			if (!boardTiles [x, y]) {
 				boardTiles[x, y] = InstantiateTileObject(x, y);
-				//Determine which extra crap goes on this tile (ally, town, enemy, or grass for now)
-				float rng = Random.value;
-				if(rng < .3f){
-					/*print ("Town boardtype");*/
-					boardTiles[x, y].type = BoardTile.TileType.Town;
-					InstantiateAndDisplay (boardTiles[x, y].gameObject,Town, tilePosition);
-				}
-				else if(rng < .4f){
-					/*print("Ally boardtype");*/
-					boardTiles[x, y].type = BoardTile.TileType.Ally;
-					InstantiateAndDisplay (boardTiles[x, y].gameObject,Ally, tilePosition);
-				}
-				else if(rng < .9f){
-					/*print ("Grass boardtype");*/
-					boardTiles[x, y].type = BoardTile.TileType.Grass;
-				}
-				else{
-					/*print ("Enemy boardtype");*/
-					boardTiles[x, y].type = BoardTile.TileType.Enemy;
-					InstantiateAndDisplay (boardTiles[x, y].gameObject,Enemy, tilePosition);
-				}
 			}
 		}
 		return boardTiles[x,y];
 	}
 
-	void InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
+	GameObject InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
 		GameObject temp = Instantiate (tile, playerLoc, Quaternion.identity) as GameObject;
 		temp.renderer.enabled = true;
 		if(parentTile)
 			temp.transform.parent = parentTile.transform;
+		return temp;
 	}
 
 	BoardTile InstantiateTileObject(int x, int y){

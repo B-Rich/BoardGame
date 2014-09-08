@@ -12,6 +12,11 @@ public class MageController : MonoBehaviour {
 	public int playerID;
 	private bool boundToMouse = false;
 
+	public enum SpellType{
+		FIREBALL,
+		SUMMON_IMP
+	}
+
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
@@ -26,14 +31,18 @@ public class MageController : MonoBehaviour {
 	}
 
 	//Blows up all objects on tiles around coords
-	public void CastSpell(TileManager.XYPair coords, int radius){
-		BoardTile[] tiles = board.GetTilesAroundPoint(coords, radius);
+	public void CastSpell(TileManager.XYPair coords, SpellType spell){
+		if(spell == SpellType.FIREBALL){
+			//For now fireball affects a cluster of 7 tiles (e.g. radius = 1)
+			BoardTile[] tiles = board.GetTilesAroundPoint(coords, 1);
 
-		foreach (BoardTile tile in tiles){
-			if(tile.type != BoardTile.TileType.Grass && tile.type != BoardTile.TileType.Invisible){
-				tile.type = BoardTile.TileType.Grass;
-				Destroy(tile.gameObject.transform.GetChild(0).gameObject);
+			//Fireball deals 5 damage
+			foreach (BoardTile tile in tiles){
+				tile.PropegateDamage(5);
 			}
+		}
+		else if(spell == SpellType.SUMMON_IMP){
+			board.SummonImp(playerID, coords);
 		}
 	}
 
@@ -61,66 +70,18 @@ public class MageController : MonoBehaviour {
 				boundToMouse = false;
 			}
 		}
-		
-		//Move player based on key press. Q = NW, E = NE
-		//A = W, D = E, Z = SW, X = SE
-		if(Input.GetKeyDown (KeyCode.Q) || 
-		   Input.GetKeyDown (KeyCode.E) || 
-		   Input.GetKeyDown (KeyCode.A) ||
-		   Input.GetKeyDown (KeyCode.D) ||
-		   Input.GetKeyDown (KeyCode.Z) ||
-		   Input.GetKeyDown (KeyCode.X)) {
-			if (Input.GetKey (KeyCode.Q)) {
-				coords = TileManager.MoveNW(coords);
-				/*if(x > 0)
-					x-= (y % 2);
-				if(y < TileManager.BOARD_HEIGHT - 1)
-					y++;*/
-			}
-			if (Input.GetKey (KeyCode.E)) {
-				coords = TileManager.MoveNE(coords);
-				/*if(x < TileManager.BOARD_WIDTH - 1)
-					x+= ((y+1) % 2);
-				if(y < TileManager.BOARD_HEIGHT - 1)
-					y++;*/
-			}
-			if (Input.GetKey (KeyCode.A)) {
-				coords = TileManager.MoveW(coords);
-				/*if(x > 0)
-					x--;*/
-			}
-			if (Input.GetKey (KeyCode.D)) {
-				coords = TileManager.MoveE (coords);
-				/*if(x < TileManager.BOARD_WIDTH - 1)
-					x++;*/
-			}
-			if (Input.GetKey (KeyCode.Z)) {
-				coords = TileManager.MoveSW(coords);
-				/*if(x > 0)
-					x-= (y % 2);
-				if(y > 0)
-					y--;*/
-			}
-			if (Input.GetKey (KeyCode.X)) {
-				coords = TileManager.MoveSE (coords);
-				/*if(x < TileManager.BOARD_WIDTH - 1)
-					x+= ((y+1) % 2);
-				if(y > 0)
-					y--;*/
-			}
-			transform.position = board.UpdatePlayerPosition (playerID, coords);
-			if(board.HasEnemies(coords.x, coords.y)){
-				
-			}
-		}
-		else if(Input.GetMouseButtonDown(0)){
+		if(Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown (1)){
 			Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 			positionToCheck.z=0f;
 			if(renderer.bounds.Contains (positionToCheck)){
 				boundToMouse = true;
 			}
 			else {
-				CastSpell(board.ComputeXYFromPosition(positionToCheck), 1);
+				if(Input.GetMouseButton (0))
+					CastSpell(board.ComputeXYFromPosition(positionToCheck), SpellType.FIREBALL);
+				else
+					CastSpell(board.ComputeXYFromPosition(positionToCheck), SpellType.SUMMON_IMP);
+				board.AdvancePlayer();
 			}
 		}
 		else if(Input.GetKeyDown (KeyCode.Space)){
