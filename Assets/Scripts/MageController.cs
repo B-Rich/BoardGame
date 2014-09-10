@@ -81,7 +81,7 @@ public class MageController : MonoBehaviour {
 					CastSpell(board.ComputeXYFromPosition(positionToCheck), SpellType.FIREBALL);
 				else
 					CastSpell(board.ComputeXYFromPosition(positionToCheck), SpellType.SUMMON_IMP);
-				board.AdvancePlayer();
+				//board.AdvancePlayer();
 			}
 		}
 		else if(Input.GetKeyDown (KeyCode.Space)){

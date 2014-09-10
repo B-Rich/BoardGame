@@ -18,7 +18,7 @@ public class TileManager : MonoBehaviour {
 	public Camera mainCamera;
 	private XYPair highlightedPosition;
 	private int currentPlayer;
-	private int numPlayers;
+	private int numPlayers = 0;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -235,13 +235,25 @@ public class TileManager : MonoBehaviour {
 	public int GetCurrentPlayerID(){
 		return currentPlayer;
 	}
-	
+
+	public void OnGUI(){
+		//Make the GUI for turn advancing
+		GUI.Box(new Rect (10, 10, 100, 90), "Finish Turn");
+
+		//Add the button and bind it to AdvancePlayer() method
+		if(GUI.Button (new Rect(20, 40, 80, 20), "Finish Turn")){
+			AdvancePlayer();
+		}
+	}
+
 	public Vector3 UpdatePlayerPosition (int playerID, Vector3 p){
 		XYPair pair = ComputeXYFromPosition (p);
 		
 		return UpdatePlayerPosition (playerID, pair);
 	}
 	public void AdvancePlayer(){
+		//TODO: Add button to advance turn. Trying to do it when the player finishes just flickers back and forth between players
+		//Mouse button down events kind of suck in Unity.
 		print ("advancing player");
 		currentPlayer = (currentPlayer + 1) % numPlayers;
 	}
@@ -251,7 +263,7 @@ public class TileManager : MonoBehaviour {
 
 		if(playerID != currentPlayer)
 			return players[playerID].transform.position;
-		AdvancePlayer ();
+		//AdvancePlayer ();
 		return GetTilesAroundPoint (pair, 2)[6].transform.position;
 	}
 
