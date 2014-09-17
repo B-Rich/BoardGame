@@ -6,7 +6,9 @@ public class CreatureController : MonoBehaviour {
 	private int ownerID;
 
 	public enum CreatureType {
-		Imp
+		Imp,
+		Caster,
+		Ogre
 	}
 
 	// Use this for initialization

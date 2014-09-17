@@ -7,10 +7,12 @@ public class BoardTile : MonoBehaviour {
 		Grass
 	}
 	public TileType type;
+	//TileManager Board;
 
 	// Use this for initialization
 	void Start () {
 		//type = TileType.Invisible;
+		//Board = GameObject.Find("GameBoard").GetComponent<TileManager>();
 	}
 
 	void Awake() {
@@ -21,5 +23,8 @@ public class BoardTile : MonoBehaviour {
 		foreach (CreatureController creature in creatures){
 			creature.TakeDamage(damage);
 		}
+	}
+	public void Summon(int playerID, CreatureController.CreatureType crType){
+
 	}
 }

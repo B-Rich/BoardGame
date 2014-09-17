@@ -6,8 +6,6 @@ public class TileManager : MonoBehaviour {
 	public GameObject GameBoardTile;
 	public Sprite GameBoardSpriteDull;
 	public Sprite GameBoardSpriteBright;
-	public Sprite redGuy;
-	public Sprite blueGuy;
 	public GameObject GameBoardBlockedTL;
 	public GameObject GameBoardBlockedTR;
 	public GameObject GameBoardBlockedL;
@@ -15,10 +13,11 @@ public class TileManager : MonoBehaviour {
 	public GameObject GameBoardBlockedBL;
 	public GameObject GameBoardBlockedBR;
 	public GameObject Enemy;
-	public Camera mainCamera;
 	private XYPair highlightedPosition;
 	private int currentPlayer;
 	private int numPlayers = 0;
+	private int turn = 0;
+	SpellHandler spellCaster;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -49,7 +48,7 @@ public class TileManager : MonoBehaviour {
 		//Create starting tile
 		for (int i = 0; i < BOARD_WIDTH; i++){
 			for(int j = 0; j < BOARD_HEIGHT; j++){
-				CreateTile(i,j);
+				GetTile(i,j);
 			}
 		}
 		highlightedPosition = new XYPair();
@@ -60,6 +59,7 @@ public class TileManager : MonoBehaviour {
 		players = new GameObject[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
+		spellCaster = gameObject.GetComponent<SpellHandler>();
 	}
 
 	public static XYPair MoveNW(XYPair pair){
@@ -239,11 +239,6 @@ public class TileManager : MonoBehaviour {
 	public void OnGUI(){
 		//Make the GUI for turn advancing
 		GUI.Box(new Rect (10, 10, 100, 90), "Finish Turn");
-
-		//Add the button and bind it to AdvancePlayer() method
-		if(GUI.Button (new Rect(20, 40, 80, 20), "Finish Turn")){
-			AdvancePlayer();
-		}
 	}
 
 	public Vector3 UpdatePlayerPosition (int playerID, Vector3 p){
@@ -252,10 +247,12 @@ public class TileManager : MonoBehaviour {
 		return UpdatePlayerPosition (playerID, pair);
 	}
 	public void AdvancePlayer(){
-		//TODO: Add button to advance turn. Trying to do it when the player finishes just flickers back and forth between players
-		//Mouse button down events kind of suck in Unity.
 		print ("advancing player");
+		if((currentPlayer + 1) == numPlayers){
+			turn++;
+		}
 		currentPlayer = (currentPlayer + 1) % numPlayers;
+		players[currentPlayer].GetComponent<MageController>().mana = turn;
 	}
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
 		if(playerID >= numPlayers || playerID < 0)
@@ -266,38 +263,40 @@ public class TileManager : MonoBehaviour {
 		//AdvancePlayer ();
 		return GetTilesAroundPoint (pair, 2)[6].transform.position;
 	}
-
+	public BoardTile GetTileAtPoint(XYPair p){
+		return boardTiles[p.x, p.y];
+	}
 	public BoardTile[] GetTilesAroundPoint (XYPair point, int radius){
 		BoardTile[] retval = new BoardTile[((radius+1)*3)*(radius)+1];
 		int i = 0;
 		if(point.y % 2 == 0){
-			retval[i++] = CreateTile (point.x + 1, point.y + 1);
-			retval[i++] = CreateTile (point.x + 1, point.y - 1);
+			retval[i++] = GetTile (point.x + 1, point.y + 1);
+			retval[i++] = GetTile (point.x + 1, point.y - 1);
 		}
 		else {
-			retval[i++] = CreateTile (point.x - 1, point.y - 1);
-			retval[i++] = CreateTile (point.x - 1, point.y + 1);
+			retval[i++] = GetTile (point.x - 1, point.y - 1);
+			retval[i++] = GetTile (point.x - 1, point.y + 1);
 		}
 		
-		retval[i++] = CreateTile (point.x - 1, point.y);
-		retval[i++] = CreateTile (point.x + 1, point.y);
+		retval[i++] = GetTile (point.x - 1, point.y);
+		retval[i++] = GetTile (point.x + 1, point.y);
 		
-		retval[i++] = CreateTile (point.x, point.y - 1);
-		retval[i++] = CreateTile (point.x, point.y + 1);
-		retval[i++] = CreateTile (point.x, point.y);
+		retval[i++] = GetTile (point.x, point.y - 1);
+		retval[i++] = GetTile (point.x, point.y + 1);
+		retval[i++] = GetTile (point.x, point.y);
 		return retval;
 	}
 
-	public void SummonImp(int playerID, XYPair coords){
+	public void Summon(int playerID, XYPair coords, CreatureController.CreatureType crtype){
 		GameObject temp = InstantiateAndDisplay (
 			boardTiles[coords.x, coords.y].gameObject, 
 			Enemy, 
 			ComputePosition (coords.x, coords.y));
 		CreatureController cc = temp.GetComponent<CreatureController>();
-		cc.Init (playerID, CreatureController.CreatureType.Imp);
+		cc.Init (playerID, crtype);
 	}
 
-	BoardTile CreateTile (int x, int y){
+	public BoardTile GetTile (int x, int y){
 		if(x  >= BOARD_WIDTH || x < 0 || y >= BOARD_HEIGHT || y < 0){
 			return blankTile;
 		}
@@ -310,12 +309,20 @@ public class TileManager : MonoBehaviour {
 		return boardTiles[x,y];
 	}
 
+	public BoardTile GetTile(XYPair p){
+		return GetTile (p.x, p.y);
+	}
+
 	GameObject InstantiateAndDisplay(GameObject parentTile, GameObject tile, Vector3 playerLoc){
 		GameObject temp = Instantiate (tile, playerLoc, Quaternion.identity) as GameObject;
 		temp.renderer.enabled = true;
 		if(parentTile)
 			temp.transform.parent = parentTile.transform;
 		return temp;
+	}
+
+	public MageController GetCurrentPlayer(){
+		return players[currentPlayer].GetComponent<MageController>();
 	}
 
 	BoardTile InstantiateTileObject(int x, int y){
