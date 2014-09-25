@@ -12,7 +12,7 @@ public class MageController : MonoBehaviour {
 	public int playerID;
 	private bool boundToMouse = false;
 	public int mana = 0;
-	SpellHandler.SpellType[] hand;
+	public SpellHandler.SpellType[] hand;
 
 	// Use this for initialization
 	void Start () {
@@ -25,6 +25,7 @@ public class MageController : MonoBehaviour {
 		}
 		coords = board.SetStartingPosition(playerID);
 		transform.position = board.ComputePosition(coords.x, coords.y);
+		hand = new SpellHandler.SpellType[5];
 	}
 
 	public bool TakeDamage(int dmg){
