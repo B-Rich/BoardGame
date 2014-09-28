@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SpellHandler : MonoBehaviour {
+public class PlayerInputHandler : MonoBehaviour {
 	TileManager Board;
 	const int CARDWIDTH = 100;
 	const int CARDHEIGHT = 100;
@@ -50,8 +50,6 @@ public class SpellHandler : MonoBehaviour {
 	}
 	
 	public void CastSpell(TileManager.XYPair[] locations, int playerID, SpellType spell){
-		//TODO: Instead of directly using the board, just handle the tiles passed in to this function
-		//and apply the specified spell to those tiles
 		foreach(TileManager.XYPair loc in locations){
 			CastSpell(loc, playerID, spell);
 		}
@@ -74,11 +72,13 @@ public class SpellHandler : MonoBehaviour {
 		case SpellType.OGRE:
 			Board.Summon(playerID, location, CreatureController.CreatureType.Ogre);
 			break;
+		case SpellType.TELEPORT:
+			print (location.x);
+			print (location.y);
+			Board.GetCurrentPlayer().Teleport(location);
+			break;
 		case SpellType.NONE:
 			return;
-			/*case SpellType.TELEPORT:
-					transform.position = Board.UpdatePlayerPosition(playerID, coords);
-					break;*/
 		}
 	}
 	// Use this for initialization
@@ -86,7 +86,45 @@ public class SpellHandler : MonoBehaviour {
 	{
 		Board = gameObject.GetComponent<TileManager>();
 	}
-	
+
+	public void Teleport(TileManager.XYPair loc){
+		transform.position = board.ComputePosition(loc.x, loc.y);
+	}
+
+	void HandlePlayerInput(){
+		if(boundToMouse){
+			if(Input.GetMouseButton(0)){
+				Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+				pos.z = 0f;
+				transform.position = pos;
+			}
+			else {
+				TileManager.XYPair mousePosPair = board.ComputeXYFromPosition(transform.position);
+				coords = TileManager.PairAlongDirection(coords, mousePosPair);
+				transform.position = board.UpdatePlayerPosition(playerID, coords);
+				boundToMouse = false;
+			}
+		}
+		if(Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown (1)){
+			Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			positionToCheck.z=0f;
+			if(renderer.bounds.Contains (positionToCheck)){
+				boundToMouse = true;
+			}
+			else {
+				//if(Input.GetMouseButton (0))
+				//caster.CastSpell(playerID, board.ComputeXYFromPosition(positionToCheck), SpellHandler.SpellType.FIREBALL);
+				//else
+				//caster.CastSpell(playerID, board.ComputeXYFromPosition(positionToCheck), SpellHandler.SpellType.IMP);
+			}
+		}
+		else if(Input.GetKeyDown (KeyCode.Space)){
+			Vector3 mainCamPos = transform.position;
+			mainCamPos.z -= 10f;
+			Camera.main.transform.position = mainCamPos;
+		}
+	}
+
 	// Update is called once per frame
 	void Update ()
 	{

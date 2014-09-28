@@ -17,7 +17,7 @@ public class TileManager : MonoBehaviour {
 	private int currentPlayer;
 	private int numPlayers = 0;
 	private int turn = 0;
-	SpellHandler spellCaster;
+	PlayerInputHandler spellCaster;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -59,7 +59,7 @@ public class TileManager : MonoBehaviour {
 		players = new GameObject[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
-		spellCaster = gameObject.GetComponent<SpellHandler>();
+		spellCaster = gameObject.GetComponent<PlayerInputHandler>();
 	}
 
 	public static XYPair MoveNW(XYPair pair){
@@ -260,8 +260,17 @@ public class TileManager : MonoBehaviour {
 
 		if(playerID != currentPlayer)
 			return players[playerID].transform.position;
+		playerLocations[playerID] = pair;
 		//AdvancePlayer ();
 		return GetTilesAroundPoint (pair, 2)[6].transform.position;
+	}
+
+	//TODO: This is just awful. You need to roll all this into the same logical place instead of spreading it between three classes
+	public Vector3 TeleportPlayer (int playerID, XYPair pair){
+		if(playerID != currentPlayer)
+			return players[playerID].transform.position;
+		playerLocations[playerID] = pair;
+		return ComputePosition(pair.x, pair.y);
 	}
 	public BoardTile GetTileAtPoint(XYPair p){
 		return boardTiles[p.x, p.y];
