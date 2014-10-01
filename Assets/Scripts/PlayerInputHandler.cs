@@ -7,6 +7,7 @@ public class PlayerInputHandler : MonoBehaviour {
 	const int CARDHEIGHT = 100;
 	const float HANDPOSFACTOR_X = 1.4f;
 	const float HANDPOSFACTOR_Y = 1.1f;
+	bool BoundToMouse;
 	public enum SpellType{
 		NONE,
 		FIREBALL,
@@ -17,7 +18,7 @@ public class PlayerInputHandler : MonoBehaviour {
 		HEAL
 	}
 
-	SpellType Current = SpellType.NONE;
+	SpellType CurrentSpell = SpellType.NONE;
 
 	public bool DisplayCard(int x, string cardName){
 		if(GUI.Button (new Rect(Screen.width / HANDPOSFACTOR_X - CARDWIDTH*(5-x), 
@@ -32,19 +33,19 @@ public class PlayerInputHandler : MonoBehaviour {
 		//Find some way to determine when spell was clicked on, but is no longer being dragged. Maybe check GUI coords against expected when mouse is not down
 		//What the heck is going on here?
 		if(DisplayCard(0, "Summon Imp")){
-			Current = SpellType.IMP;
+			CurrentSpell = SpellType.IMP;
 		}
 		if(DisplayCard(1,"Teleport")){
-			Current = SpellType.TELEPORT;
+			CurrentSpell = SpellType.TELEPORT;
 		}
 		if(DisplayCard (2, "Heal")){
-			Current = SpellType.HEAL;
+			CurrentSpell = SpellType.HEAL;
 		}
 		if(DisplayCard (3, "Caster")){
-			Current = SpellType.CASTER;
+			CurrentSpell = SpellType.CASTER;
 		}
 		if(DisplayCard (4, "Fireball")){
-			Current = SpellType.FIREBALL;
+			CurrentSpell = SpellType.FIREBALL;
 		}
 
 	}
@@ -75,7 +76,7 @@ public class PlayerInputHandler : MonoBehaviour {
 		case SpellType.TELEPORT:
 			print (location.x);
 			print (location.y);
-			Board.GetCurrentPlayer().Teleport(location);
+			Board.UpdatePlayerPosition(playerID, location);
 			break;
 		case SpellType.NONE:
 			return;
@@ -87,39 +88,39 @@ public class PlayerInputHandler : MonoBehaviour {
 		Board = gameObject.GetComponent<TileManager>();
 	}
 
-	public void Teleport(TileManager.XYPair loc){
-		transform.position = board.ComputePosition(loc.x, loc.y);
-	}
-
 	void HandlePlayerInput(){
-		if(boundToMouse){
+		MageController currentPlayer = Board.GetCurrentPlayer();
+		GameObject currentPlayerObject = currentPlayer.gameObject;
+		if(BoundToMouse){
 			if(Input.GetMouseButton(0)){
 				Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				pos.z = 0f;
-				transform.position = pos;
+				currentPlayerObject.transform.position = pos;
 			}
 			else {
-				TileManager.XYPair mousePosPair = board.ComputeXYFromPosition(transform.position);
+				int playerID = Board.GetCurrentPlayerID();
+				TileManager.XYPair coords = Board.GetPlayerPosition(playerID);
+				print ("Current position of player is");
+				print (coords.x);
+				print (coords.y);
+				TileManager.XYPair mousePosPair = Board.ComputeXYFromPosition(currentPlayerObject.transform.position);
 				coords = TileManager.PairAlongDirection(coords, mousePosPair);
-				transform.position = board.UpdatePlayerPosition(playerID, coords);
-				boundToMouse = false;
+				print ("Moving player to");
+				print (coords.x);
+				print (coords.y);
+				currentPlayerObject.transform.position = Board.UpdatePlayerPosition(playerID, coords);
+				BoundToMouse = false;
 			}
 		}
 		if(Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown (1)){
 			Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 			positionToCheck.z=0f;
-			if(renderer.bounds.Contains (positionToCheck)){
-				boundToMouse = true;
-			}
-			else {
-				//if(Input.GetMouseButton (0))
-				//caster.CastSpell(playerID, board.ComputeXYFromPosition(positionToCheck), SpellHandler.SpellType.FIREBALL);
-				//else
-				//caster.CastSpell(playerID, board.ComputeXYFromPosition(positionToCheck), SpellHandler.SpellType.IMP);
+			if(currentPlayerObject.renderer.bounds.Contains (positionToCheck)){
+				BoundToMouse = true;
 			}
 		}
 		else if(Input.GetKeyDown (KeyCode.Space)){
-			Vector3 mainCamPos = transform.position;
+			Vector3 mainCamPos = currentPlayerObject.transform.position;
 			mainCamPos.z -= 10f;
 			Camera.main.transform.position = mainCamPos;
 		}
@@ -128,12 +129,13 @@ public class PlayerInputHandler : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
 	{
-		if(Current != SpellType.NONE && Input.GetMouseButtonDown(0)){
+		if(CurrentSpell != SpellType.NONE && Input.GetMouseButtonDown(0)){
 			Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 			pos.z = 0f;
-			CastSpell (Board.ComputeXYFromPosition(pos), Board.GetCurrentPlayerID(), Current);
-			Current = SpellType.NONE;
+			CastSpell (Board.ComputeXYFromPosition(pos), Board.GetCurrentPlayerID(), CurrentSpell);
+			CurrentSpell = SpellType.NONE;
 		}
+		HandlePlayerInput();
 	}
 }
 

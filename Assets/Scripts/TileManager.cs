@@ -121,6 +121,7 @@ public class TileManager : MonoBehaviour {
 		else{
 			retval.y = -1;
 		}
+		playerLocations[playerID] = retval;
 		return retval;
 	}
 	public Vector3 ComputePosition (int x, int y) {
@@ -261,8 +262,9 @@ public class TileManager : MonoBehaviour {
 		if(playerID != currentPlayer)
 			return players[playerID].transform.position;
 		playerLocations[playerID] = pair;
+		players[playerID].transform.position = GetTilesAroundPoint (pair, 2)[6].transform.position;
 		//AdvancePlayer ();
-		return GetTilesAroundPoint (pair, 2)[6].transform.position;
+		return players[playerID].transform.position;
 	}
 
 	//TODO: This is just awful. You need to roll all this into the same logical place instead of spreading it between three classes
@@ -271,6 +273,9 @@ public class TileManager : MonoBehaviour {
 			return players[playerID].transform.position;
 		playerLocations[playerID] = pair;
 		return ComputePosition(pair.x, pair.y);
+	}
+	public XYPair GetPlayerPosition(int playerID){
+		return playerLocations[playerID];
 	}
 	public BoardTile GetTileAtPoint(XYPair p){
 		return boardTiles[p.x, p.y];

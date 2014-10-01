@@ -10,7 +10,6 @@ public class MageController : MonoBehaviour {
 	private TileManager board;
 	private TileManager.XYPair coords;
 	public int playerID;
-	private bool boundToMouse = false;
 	public int mana = 0;
 	public PlayerInputHandler.SpellType[] hand;
 
@@ -18,13 +17,11 @@ public class MageController : MonoBehaviour {
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
 		coords = new TileManager.XYPair();
-		coords.x = TileManager.BOARD_WIDTH / 2;
-		coords.y = TileManager.BOARD_HEIGHT / 2;
 		if(!board.RegisterPlayer(playerID, gameObject)){
 			print ("Invalid player id");
 		}
 		coords = board.SetStartingPosition(playerID);
-		transform.position = board.ComputePosition(coords.x, coords.y);
+		gameObject.transform.position = board.ComputePosition(coords.x, coords.y);
 		hand = new PlayerInputHandler.SpellType[5];
 	}
 
@@ -36,12 +33,5 @@ public class MageController : MonoBehaviour {
 		}
 		else
 			return false;
-	}
-
-	// Update is called once per frame
-	void Update () {
-		if(board.GetCurrentPlayerID() == playerID){
-			HandlePlayerInput();
-		}
 	}
 }
