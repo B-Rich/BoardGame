@@ -8,7 +8,6 @@ public class MageController : MonoBehaviour {
 	private int experience;
 	public GameObject GameBoardObject;
 	private TileManager board;
-	private TileManager.XYPair coords;
 	public int playerID;
 	public int mana = 0;
 	public PlayerInputHandler.SpellType[] hand;
@@ -16,12 +15,9 @@ public class MageController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
-		coords = new TileManager.XYPair();
 		if(!board.RegisterPlayer(playerID, gameObject)){
 			print ("Invalid player id");
 		}
-		coords = board.SetStartingPosition(playerID);
-		gameObject.transform.position = board.ComputePosition(coords.x, coords.y);
 		hand = new PlayerInputHandler.SpellType[5];
 	}
 

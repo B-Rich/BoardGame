@@ -17,7 +17,6 @@ public class TileManager : MonoBehaviour {
 	private int currentPlayer;
 	private int numPlayers = 0;
 	private int turn = 0;
-	PlayerInputHandler spellCaster;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -59,7 +58,6 @@ public class TileManager : MonoBehaviour {
 		players = new GameObject[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
-		spellCaster = gameObject.GetComponent<PlayerInputHandler>();
 	}
 
 	public static XYPair MoveNW(XYPair pair){
@@ -109,7 +107,7 @@ public class TileManager : MonoBehaviour {
 			retval.y = pair.y - 1;
 		return retval;
 	}
-	public XYPair SetStartingPosition(int playerID){
+	public XYPair GetStartingPosition(int playerID){
 		XYPair retval;
 		retval.x = BOARD_WIDTH / 2;
 		if(playerID == 0){
@@ -121,7 +119,7 @@ public class TileManager : MonoBehaviour {
 		else{
 			retval.y = -1;
 		}
-		playerLocations[playerID] = retval;
+
 		return retval;
 	}
 	public Vector3 ComputePosition (int x, int y) {
@@ -229,7 +227,8 @@ public class TileManager : MonoBehaviour {
 		numPlayers++;
 		
 		players[playerID] = player;
-		playerLocations[playerID] = ComputeXYFromPosition(player.transform.position);
+		playerLocations[playerID] = GetStartingPosition(playerID);
+		player.transform.position = ComputePosition(playerLocations[playerID].x, playerLocations[playerID].y);
 		return true;
 	}
 	
