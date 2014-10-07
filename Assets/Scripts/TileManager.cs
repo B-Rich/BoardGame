@@ -12,7 +12,9 @@ public class TileManager : MonoBehaviour {
 	public GameObject GameBoardBlockedR;
 	public GameObject GameBoardBlockedBL;
 	public GameObject GameBoardBlockedBR;
-	public GameObject Enemy;
+	public GameObject Imp;
+	public GameObject Caster;
+	public GameObject Ogre;
 	private XYPair highlightedPosition;
 	private int currentPlayer;
 	private int numPlayers = 0;
@@ -236,11 +238,6 @@ public class TileManager : MonoBehaviour {
 		return currentPlayer;
 	}
 
-	public void OnGUI(){
-		//Make the GUI for turn advancing
-		GUI.Box(new Rect (10, 10, 100, 90), "Finish Turn");
-	}
-
 	public Vector3 UpdatePlayerPosition (int playerID, Vector3 p){
 		XYPair pair = ComputeXYFromPosition (p);
 		
@@ -252,7 +249,7 @@ public class TileManager : MonoBehaviour {
 			turn++;
 		}
 		currentPlayer = (currentPlayer + 1) % numPlayers;
-		players[currentPlayer].GetComponent<MageController>().mana = turn;
+		players[currentPlayer].GetComponent<MageController>().Mana = turn;
 	}
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
 		if(playerID >= numPlayers || playerID < 0)
@@ -301,9 +298,23 @@ public class TileManager : MonoBehaviour {
 	}
 
 	public void Summon(int playerID, XYPair coords, CreatureController.CreatureType crtype){
+		GameObject creatureToSummon;
+		switch(crtype){
+		case CreatureController.CreatureType.Caster: 
+			creatureToSummon = Caster;
+			break;
+		case CreatureController.CreatureType.Imp:
+			creatureToSummon = Imp;
+			break;
+		case CreatureController.CreatureType.Ogre:
+			creatureToSummon = Ogre;
+			break;
+		default:
+			return;
+		}
 		GameObject temp = InstantiateAndDisplay (
 			boardTiles[coords.x, coords.y].gameObject, 
-			Enemy, 
+			creatureToSummon, 
 			ComputePosition (coords.x, coords.y));
 		CreatureController cc = temp.GetComponent<CreatureController>();
 		cc.Init (playerID, crtype);

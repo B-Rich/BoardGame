@@ -32,22 +32,18 @@ public class PlayerInputHandler : MonoBehaviour {
 	public void OnGUI(){
 		//Find some way to determine when spell was clicked on, but is no longer being dragged. Maybe check GUI coords against expected when mouse is not down
 		//What the heck is going on here?
-		if(DisplayCard(0, "Summon Imp")){
-			CurrentSpell = SpellType.IMP;
-		}
-		if(DisplayCard(1,"Teleport")){
-			CurrentSpell = SpellType.TELEPORT;
-		}
-		if(DisplayCard (2, "Heal")){
-			CurrentSpell = SpellType.HEAL;
-		}
-		if(DisplayCard (3, "Caster")){
-			CurrentSpell = SpellType.CASTER;
-		}
-		if(DisplayCard (4, "Fireball")){
-			CurrentSpell = SpellType.FIREBALL;
-		}
+		MageController currentPlayer = Board.GetCurrentPlayer ();
+		SpellType[] localHand = currentPlayer.Hand;
+		int HandSize = localHand.GetLength(0);
 
+		for(int i = 0; i < HandSize; i++){
+			if(DisplayCard(i, localHand[i].ToString ())){
+				CurrentSpell = localHand[i];
+			}
+		}
+		if(GUI.Button (new Rect (10, 10, 100, 90), "Finish Turn")){
+			Board.AdvancePlayer();
+		}
 	}
 	
 	public void CastSpell(TileManager.XYPair[] locations, int playerID, SpellType spell){
