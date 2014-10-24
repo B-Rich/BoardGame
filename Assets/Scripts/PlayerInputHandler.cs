@@ -8,6 +8,9 @@ public class PlayerInputHandler : MonoBehaviour {
 	const float HANDPOSFACTOR_X = 1.4f;
 	const float HANDPOSFACTOR_Y = 1.1f;
 	bool BoundToMouse;
+	bool CreatingDeck = false;
+	string PlayerName = "";
+	bool EscMenuActive = false;
 	public enum SpellType{
 		NONE,
 		FIREBALL,
@@ -29,20 +32,44 @@ public class PlayerInputHandler : MonoBehaviour {
 		return false;
 	}
 
+	private void SetCardForPlayer(string name, string card){
+		int numCards = PlayerPrefs.GetInt(name + card);
+		PlayerPrefs.SetInt (name + card, numCards+1);
+	}
 	public void OnGUI(){
-		//Find some way to determine when spell was clicked on, but is no longer being dragged. Maybe check GUI coords against expected when mouse is not down
-		//What the heck is going on here?
-		MageController currentPlayer = Board.GetCurrentPlayer ();
-		SpellType[] localHand = currentPlayer.Hand;
-		int HandSize = localHand.GetLength(0);
-
-		for(int i = 0; i < HandSize; i++){
-			if(DisplayCard(i, localHand[i].ToString ())){
-				CurrentSpell = localHand[i];
+		if(EscMenuActive){
+			if(GUI.Button (new Rect (100, 350, 120, 20), "Create Your Deck")){
+				CreatingDeck = !CreatingDeck;
+			}
+			if(CreatingDeck){
+				PlayerName = GUI.TextField(new Rect (120, 400, 200, 20), PlayerName, 25);
+				if (GUI.Button(new Rect(30, 150, 60, 20), "Imp"))
+					SetCardForPlayer(PlayerName, "Imp");
+				if (GUI.Button(new Rect(90, 150, 60, 20), "Caster"))
+					SetCardForPlayer(PlayerName, "Caster");
+				if (GUI.Button(new Rect(150, 150, 60, 20), "Ogre"))
+					SetCardForPlayer(PlayerName, "Ogre");
+				if (GUI.Button(new Rect(210, 150, 60, 20), "Teleport"))
+					SetCardForPlayer(PlayerName, "Teleport");
+				if (GUI.Button(new Rect(270, 150, 60, 20), "Heal"))
+					SetCardForPlayer(PlayerName, "Heal");
+				if (GUI.Button(new Rect(330, 150, 60, 20), "Fireball"))
+					SetCardForPlayer(PlayerName, "Fireball");
 			}
 		}
-		if(GUI.Button (new Rect (10, 10, 100, 90), "Finish Turn")){
-			Board.AdvancePlayer();
+		else{
+			MageController currentPlayer = Board.GetCurrentPlayer ();
+			SpellType[] localHand = currentPlayer.Hand;
+			int HandSize = localHand.GetLength(0);
+
+			for(int i = 0; i < HandSize; i++){
+				if(DisplayCard(i, localHand[i].ToString ())){
+					CurrentSpell = localHand[i];
+				}
+			}
+			if(GUI.Button (new Rect (10, 10, 100, 90), "Finish Turn")){
+				Board.AdvancePlayer();
+			}
 		}
 	}
 	
@@ -120,6 +147,17 @@ public class PlayerInputHandler : MonoBehaviour {
 			mainCamPos.z -= 10f;
 			Camera.main.transform.position = mainCamPos;
 		}
+		if(Input.GetKeyDown (KeyCode.Escape)){
+			EscMenuActive = !EscMenuActive;
+		}
+	}
+
+	/*public static void BuildDeck(){
+
+	}*/
+
+	static void BuildDeckButtons(int windowID){
+
 	}
 
 	// Update is called once per frame

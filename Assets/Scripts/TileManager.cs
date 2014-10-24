@@ -15,6 +15,7 @@ public class TileManager : MonoBehaviour {
 	public GameObject Imp;
 	public GameObject Caster;
 	public GameObject Ogre;
+	public GameObject Player;
 	private XYPair highlightedPosition;
 	private int currentPlayer;
 	private int numPlayers = 0;
@@ -60,6 +61,9 @@ public class TileManager : MonoBehaviour {
 		players = new GameObject[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
+		for (int i = 0; i < 4; i++){
+			players[i] = Instantiate (Player, new Vector3 (0f, 0f), Quaternion.identity) as GameObject;
+		}
 	}
 
 	public static XYPair MoveNW(XYPair pair){
