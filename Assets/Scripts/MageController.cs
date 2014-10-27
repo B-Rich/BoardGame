@@ -4,7 +4,7 @@ using System.IO;
 
 public class MageController : MonoBehaviour {
 	public int HP;
-	public char PlayerName;
+	public string PlayerName;
 	private int level;
 	private int experience;
 	public GameObject GameBoardObject;
@@ -12,56 +12,38 @@ public class MageController : MonoBehaviour {
 	public int PlayerID;
 	public int Mana = 0;
 	public PlayerInputHandler.SpellType[] Hand;
-	private PlayerInputHandler.SpellType[] deck;
+	private PlayerInputHandler.SpellType[] Deck;
+	int NumberOfCards = 0;
 
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
+		print ("Adding player");
 		if(!board.RegisterPlayer(PlayerID, gameObject)){
 			print ("Invalid player id");
 		}
+		print ("Player name is " + PlayerName);
 		Hand = new PlayerInputHandler.SpellType[5];
-		deck = new PlayerInputHandler.SpellType[30];
-
-		for(int i = 0; i < 30; i++){
-			deck[i] = (PlayerInputHandler.SpellType)handBytes[i];
-		}
+		Deck = new PlayerInputHandler.SpellType[30];
+		
+		AddCardsToHandFromPrefs("Imp", PlayerInputHandler.SpellType.IMP);
+		AddCardsToHandFromPrefs("Caster", PlayerInputHandler.SpellType.CASTER);
+		AddCardsToHandFromPrefs("Fireball", PlayerInputHandler.SpellType.FIREBALL);
+		AddCardsToHandFromPrefs("Teleport", PlayerInputHandler.SpellType.TELEPORT);
+		AddCardsToHandFromPrefs("Heal", PlayerInputHandler.SpellType.HEAL);
+		AddCardsToHandFromPrefs("Ogre", PlayerInputHandler.SpellType.OGRE);
 		for(int i = 0; i < 5; i++){
-			Hand[i] = deck[i];
+			Hand[i] = Deck[i];
 		}
-		int cardTotal = 0;
-		int numCardsOneType = PlayerPrefs.GetInt(PlayerName + "Imp");
-		cardTotal += numCardsOneType;
-		for(int i = 0; i < numCardsOneType; i++){
-			deck[i] = PlayerInputHandler.SpellType.IMP;
-		}
+	}
 
-		numCardsOneType = PlayerPrefs.GetInt(PlayerName + "Caster");
-		cardTotal += numCardsOneType;
-		for(int i = numCardsOneType; i < cardTotal; i++){
-			deck[i] = PlayerInputHandler.SpellType.CASTER;
+	void AddCardsToHandFromPrefs(string CardName, PlayerInputHandler.SpellType spellType){
+		print ("Adding cards for player named " + PlayerName);
+		int cardsOfType = PlayerPrefs.GetInt (PlayerName + CardName);
+		for(int i = NumberOfCards; i < NumberOfCards + cardsOfType; i++){
+			Deck[i] = spellType;
 		}
-
-		numCardsOneType = PlayerPrefs.GetInt(PlayerName + "Ogre");
-		cardTotal += numCardsOneType;
-		for(int i = numCardsOneType; i < cardTotal; i++){
-			deck[i] = PlayerInputHandler.SpellType.OGRE;
-		}
-
-		numCardsOneType = PlayerPrefs.GetInt(PlayerName + "Teleport");
-		numCardsOneType = PlayerPrefs.GetInt(PlayerName + "Heal");
-		numCardsOneType = PlayerPrefs.GetInt(PlayerName + "Fireball");
-
-		for(int i = 0; i < numImps; i++){
-			deck[i] = PlayerInputHandler.SpellType.IMP;
-		}
-		for(int i = 0; i < numImps; i++){
-			deck[i] = PlayerInputHandler.SpellType.IMP;
-		}
-		for(int i = 0; i < numImps; i++){
-			deck[i] = PlayerInputHandler.SpellType.IMP;
-		}
-
+		NumberOfCards += cardsOfType;
 	}
 
 	public bool TakeDamage(int dmg){

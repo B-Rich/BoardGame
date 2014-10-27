@@ -63,7 +63,11 @@ public class TileManager : MonoBehaviour {
 		currentPlayer = 0;
 		for (int i = 0; i < 4; i++){
 			players[i] = Instantiate (Player, new Vector3 (0f, 0f), Quaternion.identity) as GameObject;
+			if(i == 0)
+				players[0].GetComponent<MageController>().PlayerName = "Aaron";
+			players[i].SetActive(true);
 		}
+		PlayerInputHandler.GameState = PlayerInputHandler.GameStateType.PLAYING;
 	}
 
 	public static XYPair MoveNW(XYPair pair){
@@ -249,11 +253,15 @@ public class TileManager : MonoBehaviour {
 	}
 	public void AdvancePlayer(){
 		print ("advancing player");
+		print ("Number of players is" + numPlayers);
 		if((currentPlayer + 1) == numPlayers){
 			turn++;
 		}
+		print ("Current player is " + currentPlayer);
 		currentPlayer = (currentPlayer + 1) % numPlayers;
+		print ("New player is " + currentPlayer);
 		players[currentPlayer].GetComponent<MageController>().Mana = turn;
+		print (players[currentPlayer].GetComponent<MageController>().PlayerName + "'s turn");
 	}
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
 		if(playerID >= numPlayers || playerID < 0)
