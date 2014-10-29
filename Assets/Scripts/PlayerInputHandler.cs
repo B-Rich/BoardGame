@@ -37,15 +37,27 @@ public class PlayerInputHandler : MonoBehaviour {
 		return false;
 	}
 
-	private void SetCardForPlayer(string name, string card){
-		int numCards = PlayerPrefs.GetInt(name + card);
-		PlayerPrefs.SetInt (name + card, numCards+1);
-		print (card + numCards + " for " + name + "added");
+	private void SetCardForPlayer(string playerName, string card){
+		int numCards = PlayerPrefs.GetInt(playerName + card);
+		PlayerPrefs.SetInt (playerName + card, numCards+1);
+		print (card + numCards+1 + " for " + playerName + "added");
 	}
+
+	private void RemoveCardForPlayer(string playerName, string card){
+		int numCards = PlayerPrefs.GetInt(playerName + card);
+		if(numCards > 0){
+			PlayerPrefs.SetInt (playerName + card, numCards-1);
+			print (card + numCards + " for " + playerName + "removed");
+		}
+		else{
+			print(card + " for " + playerName + "did not exist");
+		}
+	}
+
 	public void OnGUI(){
 		switch(GameState){
 		case GameStateType.ESCMENU:
-			print ("Escape menu is active");
+			//print ("Escape menu is active");
 			if(GUI.Button (new Rect (Screen.width/2 - 120, Screen.height/4 - 20, 120, 20), "Create Your Deck")){
 				CreatingDeck = !CreatingDeck;
 			}
@@ -55,16 +67,33 @@ public class PlayerInputHandler : MonoBehaviour {
 				PlayerName = GUI.TextField(new Rect (cardAddHorizPos, cardAddVertStartingPos - 20, 200, 20), PlayerName, 25);
 				if (GUI.Button(new Rect(cardAddHorizPos, cardAddVertStartingPos, 60, 20), "Imp"))
 					SetCardForPlayer(PlayerName, "Imp");
+				if (GUI.Button(new Rect(cardAddHorizPos + 60, cardAddVertStartingPos, 60, 20), "Imp"))
+					RemoveCardForPlayer(PlayerName, "Imp");
+
 				if (GUI.Button(new Rect(cardAddHorizPos, cardAddVertStartingPos + 20, 60, 20), "Caster"))
 					SetCardForPlayer(PlayerName, "Caster");
+				if (GUI.Button(new Rect(cardAddHorizPos + 60, cardAddVertStartingPos + 20, 60, 20), "Caster"))
+					RemoveCardForPlayer(PlayerName, "Caster");
+
 				if (GUI.Button(new Rect(cardAddHorizPos, cardAddVertStartingPos + 40, 60, 20), "Ogre"))
 					SetCardForPlayer(PlayerName, "Ogre");
+				if (GUI.Button(new Rect(cardAddHorizPos + 60, cardAddVertStartingPos + 40, 60, 20), "Ogre"))
+					RemoveCardForPlayer(PlayerName, "Ogre");
+
 				if (GUI.Button(new Rect(cardAddHorizPos, cardAddVertStartingPos + 60, 60, 20), "Teleport"))
 					SetCardForPlayer(PlayerName, "Teleport");
+				if (GUI.Button(new Rect(cardAddHorizPos + 60, cardAddVertStartingPos + 60, 60, 20), "Teleport"))
+					RemoveCardForPlayer(PlayerName, "Teleport");
+
 				if (GUI.Button(new Rect(cardAddHorizPos, cardAddVertStartingPos + 80, 60, 20), "Heal"))
 					SetCardForPlayer(PlayerName, "Heal");
+				if (GUI.Button(new Rect(cardAddHorizPos + 60, cardAddVertStartingPos + 80, 60, 20), "Heal"))
+					RemoveCardForPlayer(PlayerName, "Heal");
+
 				if (GUI.Button(new Rect(cardAddHorizPos, cardAddVertStartingPos + 100, 60, 20), "Fireball"))
 					SetCardForPlayer(PlayerName, "Fireball");
+				if (GUI.Button(new Rect(cardAddHorizPos + 60, cardAddVertStartingPos + 100, 60, 20), "Fireball"))
+					RemoveCardForPlayer(PlayerName, "Fireball");
 			}
 			break;
 		case GameStateType.PLAYING:
