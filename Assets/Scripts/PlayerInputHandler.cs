@@ -97,7 +97,7 @@ public class PlayerInputHandler : MonoBehaviour {
 			}
 			break;
 		case GameStateType.PLAYING:
-			print ("GameState Playing GUI stuff");
+			//print ("GameState Playing GUI stuff");
 			MageController currentPlayer = Board.GetCurrentPlayer ();
 			SpellType[] localHand = currentPlayer.Hand;
 			int HandSize = localHand.GetLength(0);

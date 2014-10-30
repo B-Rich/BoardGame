@@ -28,7 +28,7 @@ public class TileManager : MonoBehaviour {
 	public const int BOARD_HEIGHT = 14;
 	public const int BOARD_WIDTH = 14;
 
-	GameObject[] players;
+	MageController[] players;
 	XYPair[] playerLocations;
 
 	public struct XYPair {
@@ -58,14 +58,17 @@ public class TileManager : MonoBehaviour {
 		highlightedPosition.y = BOARD_HEIGHT / 2;
 
 		blankTile = (Instantiate (GameBoardTile, new Vector3(0f,0f), Quaternion.identity) as GameObject).GetComponent<BoardTile>();
-		players = new GameObject[4];
+		players = new MageController[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
 		for (int i = 0; i < 4; i++){
-			players[i] = Instantiate (Player, new Vector3 (0f, 0f), Quaternion.identity) as GameObject;
+			GameObject tempPlayer = Instantiate (Player, new Vector3 (0f, 0f), Quaternion.identity) as GameObject;
+			tempPlayer.SetActive (true);
+			players[i] = tempPlayer.GetComponent<MageController>();
 			if(i == 0)
-				players[0].GetComponent<MageController>().PlayerName = "Aaron";
-			players[i].SetActive(true);
+				players[0].SetPlayerName("Aaron");
+			players[i].PlayerID = i;
+			players[i].Mana = 1;
 		}
 		PlayerInputHandler.GameState = PlayerInputHandler.GameStateType.PLAYING;
 	}
@@ -230,7 +233,7 @@ public class TileManager : MonoBehaviour {
 		}
 	}
 
-	public bool RegisterPlayer (int playerID, GameObject player){
+	public bool RegisterPlayer (int playerID, MageController player){
 		if(playerID < 0 || playerID > 3){
 			return false;
 		}
@@ -238,7 +241,7 @@ public class TileManager : MonoBehaviour {
 		
 		players[playerID] = player;
 		playerLocations[playerID] = GetStartingPosition(playerID);
-		player.transform.position = ComputePosition(playerLocations[playerID].x, playerLocations[playerID].y);
+		player.gameObject.transform.position = ComputePosition(playerLocations[playerID].x, playerLocations[playerID].y);
 		return true;
 	}
 	
@@ -261,7 +264,8 @@ public class TileManager : MonoBehaviour {
 		currentPlayer = (currentPlayer + 1) % numPlayers;
 		print ("New player is " + currentPlayer);
 		players[currentPlayer].GetComponent<MageController>().Mana = turn;
-		print (players[currentPlayer].GetComponent<MageController>().PlayerName + "'s turn");
+		print (players[currentPlayer].GetComponent<MageController>().GetPlayerName() + "'s turn");
+		print (players[currentPlayer].GetComponent<MageController>().Mana + "amount of mana");
 	}
 	public Vector3 UpdatePlayerPosition (int playerID, XYPair pair) {
 		if(playerID >= numPlayers || playerID < 0)

@@ -4,7 +4,7 @@ using System.IO;
 
 public class MageController : MonoBehaviour {
 	public int HP;
-	public string PlayerName;
+	private string PlayerName;
 	private int level;
 	private int experience;
 	public GameObject GameBoardObject;
@@ -15,13 +15,22 @@ public class MageController : MonoBehaviour {
 	private PlayerInputHandler.SpellType[] Deck;
 	int NumberOfCards = 0;
 
+	public void SetPlayerName(string n){
+		print("Setting player " + PlayerID + " name to " + n);
+		PlayerName = n;
+	}
+
+	public string GetPlayerName(){
+		return PlayerName;
+	}
+
 	// Use this for initialization
 	void Start () {
 		board = GameBoardObject.GetComponent<TileManager>();
-		print ("Adding player");
-		if(!board.RegisterPlayer(PlayerID, gameObject)){
+		//print ("Adding player");
+		/*if(!board.RegisterPlayer(PlayerID, gameObject)){
 			print ("Invalid player id");
-		}
+		}*/
 		print ("Player name is " + PlayerName);
 		Hand = new PlayerInputHandler.SpellType[5];
 		Deck = new PlayerInputHandler.SpellType[30];
