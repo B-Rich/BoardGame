@@ -7,7 +7,6 @@ public class PlayerInputHandler : MonoBehaviour {
 	const int CARDHEIGHT = 100;
 	const float HANDPOSFACTOR_X = 1.4f;
 	const float HANDPOSFACTOR_Y = 1.1f;
-	bool BoundToMouse;
 	bool CreatingDeck = false;
 	string PlayerName = "";
 	public enum SpellType{
@@ -158,38 +157,8 @@ public class PlayerInputHandler : MonoBehaviour {
 	}
 
 	void HandlePlayerInput(){
-		MageController currentPlayer = Board.GetCurrentPlayer();
-		GameObject currentPlayerObject = currentPlayer.gameObject;
-		if(BoundToMouse){
-			if(Input.GetMouseButton(0)){
-				Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-				pos.z = 0f;
-				currentPlayerObject.transform.position = pos;
-			}
-			else {
-				int playerID = Board.GetCurrentPlayerID();
-				TileManager.XYPair coords = Board.GetPlayerPosition(playerID);
-				print ("Current position of player is");
-				print (coords.x);
-				print (coords.y);
-				TileManager.XYPair mousePosPair = Board.ComputeXYFromPosition(currentPlayerObject.transform.position);
-				coords = TileManager.PairAlongDirection(coords, mousePosPair);
-				print ("Moving player to");
-				print (coords.x);
-				print (coords.y);
-				currentPlayerObject.transform.position = Board.UpdatePlayerPosition(playerID, coords);
-				BoundToMouse = false;
-			}
-		}
-		if(Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown (1)){
-			Vector3 positionToCheck = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-			positionToCheck.z=0f;
-			if(currentPlayerObject.renderer.bounds.Contains (positionToCheck)){
-				BoundToMouse = true;
-			}
-		}
-		else if(Input.GetKeyDown (KeyCode.Space)){
-			Vector3 mainCamPos = currentPlayerObject.transform.position;
+		if(Input.GetKeyDown (KeyCode.Space)){
+			Vector3 mainCamPos = Board.GetCurrentPlayer().gameObject.transform.position;
 			mainCamPos.z -= 10f;
 			Camera.main.transform.position = mainCamPos;
 		}
@@ -208,6 +177,7 @@ public class PlayerInputHandler : MonoBehaviour {
 			Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 			pos.z = 0f;
 			CastSpell (Board.ComputeXYFromPosition(pos), Board.GetCurrentPlayerID(), CurrentSpell);
+
 			CurrentSpell = SpellType.NONE;
 		}
 		HandlePlayerInput();

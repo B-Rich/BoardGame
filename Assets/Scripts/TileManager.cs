@@ -57,12 +57,13 @@ public class TileManager : MonoBehaviour {
 		highlightedPosition.x = BOARD_WIDTH / 2;
 		highlightedPosition.y = BOARD_HEIGHT / 2;
 
-		blankTile = (Instantiate (GameBoardTile, new Vector3(0f,0f), Quaternion.identity) as GameObject).GetComponent<BoardTile>();
+		blankTile = (Instantiate (GameBoardTile, new Vector3(1000f,1000f), Quaternion.identity) as GameObject).GetComponent<BoardTile>();
 		players = new MageController[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
 		for (int i = 0; i < 4; i++){
-			GameObject tempPlayer = Instantiate (Player, new Vector3 (0f, 0f), Quaternion.identity) as GameObject;
+			XYPair playerLocation = GetStartingPosition(i);
+			GameObject tempPlayer = Instantiate (Player, ComputePosition(playerLocation.x, playerLocation.y), Quaternion.identity) as GameObject;
 			tempPlayer.SetActive (true);
 			players[i] = tempPlayer.GetComponent<MageController>();
 			if(i == 0)
@@ -70,6 +71,7 @@ public class TileManager : MonoBehaviour {
 			players[i].PlayerID = i;
 			players[i].Mana = 1;
 		}
+		numPlayers = 4;
 		PlayerInputHandler.GameState = PlayerInputHandler.GameStateType.PLAYING;
 	}
 
@@ -334,6 +336,8 @@ public class TileManager : MonoBehaviour {
 			ComputePosition (coords.x, coords.y));
 		CreatureController cc = temp.GetComponent<CreatureController>();
 		cc.Init (playerID, crtype);
+		cc.Board = this;
+		cc.Location = coords;
 	}
 
 	public BoardTile GetTile (int x, int y){

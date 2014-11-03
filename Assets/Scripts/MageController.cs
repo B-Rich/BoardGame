@@ -8,7 +8,7 @@ public class MageController : MonoBehaviour {
 	private int level;
 	private int experience;
 	public GameObject GameBoardObject;
-	private TileManager board;
+	private TileManager Board;
 	public int PlayerID;
 	public int Mana = 0;
 	public PlayerInputHandler.SpellType[] Hand;
@@ -26,7 +26,7 @@ public class MageController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		board = GameBoardObject.GetComponent<TileManager>();
+		Board = GameBoardObject.GetComponent<TileManager>();
 		//print ("Adding player");
 		/*if(!board.RegisterPlayer(PlayerID, gameObject)){
 			print ("Invalid player id");
@@ -63,5 +63,23 @@ public class MageController : MonoBehaviour {
 		}
 		else
 			return false;
+	}
+	void OnMouseDrag(){
+		int CurrentPlayerID = Board.GetCurrentPlayerID();
+		if(CurrentPlayerID == PlayerID){
+			print ("I AM BEING DRAGGED. HELP!");
+			Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			pos.z = 0f;
+			gameObject.transform.position = pos;
+		}
+		else{
+			print ("I am not being dragged");
+		}
+	}
+	void OnMouseUpAsButton(){
+		print ("I am having my position reassigned");
+		TileManager.XYPair mousePosPair = Board.ComputeXYFromPosition(gameObject.transform.position);
+		TileManager.XYPair location = Board.GetPlayerPosition(PlayerID);
+		gameObject.transform.position = Board.UpdatePlayerPosition(PlayerID, TileManager.PairAlongDirection(location, mousePosPair));
 	}
 }
