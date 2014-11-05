@@ -63,6 +63,8 @@ public class TileManager : MonoBehaviour {
 		currentPlayer = 0;
 		for (int i = 0; i < 4; i++){
 			XYPair playerLocation = GetStartingPosition(i);
+			playerLocations[i] = playerLocation;
+			print("player " + i +" Location" + "x: " + playerLocation.x + "y: " + playerLocation.y);
 			GameObject tempPlayer = Instantiate (Player, ComputePosition(playerLocation.x, playerLocation.y), Quaternion.identity) as GameObject;
 			tempPlayer.SetActive (true);
 			players[i] = tempPlayer.GetComponent<MageController>();
@@ -236,6 +238,7 @@ public class TileManager : MonoBehaviour {
 	}
 
 	public bool RegisterPlayer (int playerID, MageController player){
+		print("In RegisterPlayer function");
 		if(playerID < 0 || playerID > 3){
 			return false;
 		}
