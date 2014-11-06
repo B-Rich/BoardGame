@@ -7,7 +7,6 @@ public class MageController : MonoBehaviour {
 	private string PlayerName;
 	private int level;
 	private int experience;
-	public GameObject GameBoardObject;
 	private TileManager Board;
 	public int PlayerID;
 	public int Mana = 0;
@@ -26,7 +25,7 @@ public class MageController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		Board = GameBoardObject.GetComponent<TileManager>();
+		Board = GameObject.Find("GameBoard").GetComponent<TileManager>();
 		//print ("Adding player");
 		/*if(!board.RegisterPlayer(PlayerID, gameObject)){
 			print ("Invalid player id");

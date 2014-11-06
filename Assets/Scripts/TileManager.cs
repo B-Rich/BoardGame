@@ -18,7 +18,7 @@ public class TileManager : MonoBehaviour {
 	public GameObject Player;
 	private XYPair highlightedPosition;
 	private int currentPlayer;
-	private int numPlayers = 0;
+	private int numPlayers = 2;
 	private int turn = 0;
 
 	float boardTileWidth;
@@ -61,7 +61,7 @@ public class TileManager : MonoBehaviour {
 		players = new MageController[4];
 		playerLocations = new XYPair[4];
 		currentPlayer = 0;
-		for (int i = 0; i < 4; i++){
+		for (int i = 0; i < numPlayers; i++){
 			XYPair playerLocation = GetStartingPosition(i);
 			playerLocations[i] = playerLocation;
 			print("player " + i +" Location" + "x: " + playerLocation.x + "y: " + playerLocation.y);
@@ -73,7 +73,6 @@ public class TileManager : MonoBehaviour {
 			players[i].PlayerID = i;
 			players[i].Mana = 1;
 		}
-		numPlayers = 4;
 		PlayerInputHandler.GameState = PlayerInputHandler.GameStateType.PLAYING;
 	}
 
