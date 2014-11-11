@@ -4,10 +4,10 @@ using System.IO;
 
 public class MageController : MonoBehaviour {
 	public int HP;
-	private string PlayerName;
-	private int level;
-	private int experience;
-	private TileManager Board;
+	string PlayerName;
+	int level;
+	int experience;
+	TileManager Board;
 	public int PlayerID;
 	public int Mana = 0;
 	public PlayerInputHandler.SpellType[] Hand;

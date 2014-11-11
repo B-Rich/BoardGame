@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class TileManager : MonoBehaviour {
-	private BoardTile blankTile;
+	BoardTile blankTile;
 	public GameObject GameBoardTile;
 	public Sprite GameBoardSpriteDull;
 	public Sprite GameBoardSpriteBright;
@@ -16,10 +16,10 @@ public class TileManager : MonoBehaviour {
 	public GameObject Caster;
 	public GameObject Ogre;
 	public GameObject Player;
-	private XYPair highlightedPosition;
-	private int currentPlayer;
-	private int numPlayers = 2;
-	private int turn = 0;
+	XYPair highlightedPosition;
+	int currentPlayer;
+	int numPlayers = 2;
+	int turn = 0;
 
 	float boardTileWidth;
 	float boardTileHeight;
@@ -76,7 +76,7 @@ public class TileManager : MonoBehaviour {
 		PlayerInputHandler.GameState = PlayerInputHandler.GameStateType.PLAYING;
 	}
 
-	public static XYPair MoveNW(XYPair pair){
+	/*public static XYPair MoveNW(XYPair pair){
 		XYPair retval = pair;
 		if(pair.x > 0)
 			retval.x = pair.x - (pair.y % 2);
@@ -122,7 +122,7 @@ public class TileManager : MonoBehaviour {
 		if(pair.y > 0)
 			retval.y = pair.y - 1;
 		return retval;
-	}
+	}*/
 	public XYPair GetStartingPosition(int playerID){
 		XYPair retval;
 		retval.x = BOARD_WIDTH / 2;
@@ -139,27 +139,19 @@ public class TileManager : MonoBehaviour {
 		return retval;
 	}
 	public Vector3 ComputePosition (int x, int y) {
-		float x_correction;
-		if(y % 2 == 0)
-			x_correction = 0.5f;
-		else
-			x_correction = 0f;
-		
-		return (new Vector3(baselineX + (x - BOARD_WIDTH / 2f)*boardTileWidth + x_correction*boardTileWidth,
+		//TODO: Fix up anywhere else that uses coordinates. Converting to y axes = diagonal up-right
+		return (new Vector3(baselineX + (x - BOARD_WIDTH / 2f)*boardTileWidth + y*boardTileWidth*.5f,
 		                    baselineY + (y - BOARD_HEIGHT / 2f)*boardTileHeight*.75f));
 	}
 
 	public XYPair ComputeXYFromPosition (Vector3 pos){
 		XYPair pair = new XYPair();
-		pair.y = (int) (BOARD_HEIGHT / 2 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
-		
-		float x_correction;
-		if(pair.y % 2 == 0)
-			x_correction = 0.5f;
-		else
-			x_correction = 0f;
 
-		pair.x = (int) (BOARD_WIDTH / 2 + 0.5f - x_correction + (pos.x - baselineX)/boardTileWidth);
+
+		pair.y = (int) (BOARD_HEIGHT / 2 + ((pos.y - baselineY) / (boardTileHeight * .75f)) + .5f);
+
+
+		pair.x = (int) (BOARD_WIDTH / 2 + 0.5f + (pos.x - baselineX)/boardTileWidth - 0.5f * pair.y);
 		if(pair.x < 0){
 			pair.x = 0;
 		}
@@ -180,42 +172,21 @@ public class TileManager : MonoBehaviour {
 
 	//Returns an XYPair one step in the direction of end, starting from start on the hex grid
 	public static XYPair PairAlongDirection(XYPair start, XYPair end){
-		if(start.x == end.x && start.y == end.y){
-			return start;
+		XYPair retval = start;
+		if(start.x < end.x){
+			retval.x = start.x + 1;
 		}
-
-		//equal y value means x moves left or right one space
-		if(start.y == end.y){
-			if(start.x > end.x){
-				return MoveW(start);
-			}
-			else{
-				return MoveE (start);
-			}
+		else if(start.x > end.x){
+			retval.x = start.x - 1;
 		}
 
 		if(start.y < end.y){
-			if(start.y % 2 == 0){
-				if(end.x <= start.x){
-					return (MoveNW (start));
-				}
-				return (MoveNE (start));
-			}
-			if(end.x < start.x){
-				return (MoveNW (start));
-			}
-			return (MoveNE (start));
+			retval.y = start.y + 1;
 		}
-		if(start.y % 2 == 0){
-			if(end.x <= start.x){
-				return (MoveSW (start));
-			}
-			return (MoveSE (start));
+		else if(start.y > end.y){
+			retval.y = end.y - 1;
 		}
-		if(end.x < start.x){
-			return (MoveSW (start));
-		}
-		return (MoveSE (start));
+		return retval;
 	}
 
 	public void HighlightMousePosition (){
